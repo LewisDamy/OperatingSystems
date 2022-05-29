@@ -49,12 +49,11 @@ char* ReadFile(char *filename)
 int main()
 {
     char *string = ReadFile("text.txt");
-    if (string)
-    {
-        // puts(string);
-        // free(string);
-    }
-    printf("buffer: %s\n", buffer);
+
+    // test of buffer print
+    // for(int i = 0; i < 10; i++) {
+    //     printf("buffer: %c\n", buffer[i]);
+    // }
 
     return 0;
 }
