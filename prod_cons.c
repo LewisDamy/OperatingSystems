@@ -46,14 +46,14 @@ void *producer(void *args) {
 		insert_item(id, item);
 		sem_post(&mutex_prod);
 		sem_post(&full);
-		//sleep(1);
+		sleep(1);
 	}
 }
 
 int remove_item(int id) {
 	int item;
 	item = buffer[r];
-	printf("CONS %d %d = buffer[%d] \n", id, item, r);
+	printf("Cons %d buffer[%d] = %d \n", id, r, item);
 	r = (r+1)%N;
 }
 
@@ -66,12 +66,12 @@ void *consumer(void *args) {
 		item = remove_item(id);
 		sem_post(&mutex_cons);
 		sem_post(&empty);
-		sleep(1);
+		sleep(5);
 	}
 }
 
-#define NP 5
-#define NC 5
+#define NP 3
+#define NC 2
 
 struct thread_t {
 	pthread_t t;
