@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <errno.h>
 
 typedef struct threadArgs {
     int start;
@@ -14,6 +16,7 @@ struct thread_t {
     pthread_t t;
     threadArgs bits;
 };
+
 typedef struct thread_t thread_t;
 
 
@@ -52,15 +55,46 @@ void *mapper(void *args) {
     end = bits.end;
 
     // FOPEN, FSEEK, FREAD ...
-    printf("Mapper read bits from %i to %i\n", start, end);
-    fflush(stdout);
+    // fopen();
+    // fread( start, end);
+
+    // for loop percorrer cada string buscando o espaco
+    
 	// while(1) {
 	// 	// item = produce_item();
 	// 	sem_wait(&mutex_mapper);
-	// 	// insert_item(id, item);
+	// 	// insert_item(id, item); // insereTH funcao para inserir valor na hash table
 	// 	sem_post(&mutex_mapper);
-	// 	sleep(1);
+	// 	// sleep(1);
 	// }
+
+    printf("Mapper read bits from %i to %i\n", start, end);
+    fflush(stdout);
+    
+}
+
+int sizeText(char *fileSize) {
+    // get the name of file
+    char *file = fileSize;
+    // define the variable to hold the size
+    int sizeFile;
+    // allocates memory for stat structure
+    struct stat *buff = malloc(sizeof(struct stat));
+    // always set errno to zero first, in case there's some error
+    errno = 0;
+
+    // run the function stat, passing the file to read, and the buffer to save the value
+    if(stat(file, buff) == 0) { // int stat(const char *restrict pathname, struct stat *restrict statbuf);
+        // save the value of the file
+        sizeFile = buff->st_size;
+        printf("Size of '%s' is %i bytes.\n", file, sizeFile);
+        // printf("size: %i\n", sizeFile);
+    } else {
+        perror(file); // if something went wrong
+    }
+    free(buff);
+
+    return sizeFile;
 }
 
 void join_threads(thread_t *mapArrThread, int n) {
@@ -71,8 +105,16 @@ void join_threads(thread_t *mapArrThread, int n) {
 
 int main(void) {
     init();
-    int amountBits = 50;
-    int sizeFile = 1000;
+    
+    char *file = "example.txt";  // name of the file
+
+    int sizeFile = sizeText(file); // call the function and save the amount of bits 
+
+    printf("Size file: %i\n", sizeFile);
+
+    int amountBits = 0;
+    // int sizeFile = 1000;
+
     create_threads(mapArrThread, MAP, mapper, amountBits, sizeFile);
     join_threads(mapArrThread, MAP);
 }

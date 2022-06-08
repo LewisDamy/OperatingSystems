@@ -4,7 +4,7 @@
 
 void ler()
 {
-  FILE *file = fopen("text.txt", "r");
+  FILE *file = fopen("sample.txt", "r");
   char string[30];
 
   if (file != NULL)
