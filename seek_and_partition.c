@@ -4,13 +4,12 @@
 
 void ler()
 {
-  /*se quebra no meio de uma palavra, esse codigo nao a considera*/
   FILE *file = fopen("text.txt", "r");
   char string[30];
   int i = 0;
   int bits = 0;
-  int end = 50;
-  int start = 10;
+  int end = 40;
+  int start = 30;
   char aux;
   // inicializando o vetor string
   memset(string, 0, 30);
@@ -30,6 +29,12 @@ void ler()
       {
         string[i] = aux;
         i++;
+        /*se for o ultimo bit a ser pego
+        printa mesmo nao terminando a palavra*/
+        if ((end - start) - bits == 1)
+        {
+          printf("%s.\n", string);
+        }
       }
       else
       {
@@ -45,7 +50,6 @@ void ler()
       }
       bits++;
     }
-
     fclose(file);
   }
   else
