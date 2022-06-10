@@ -29,7 +29,7 @@ void init(void) {
     sem_init(&mutex_mapper, 0, 1);
 }
 
-void create_threads(thread_t *mapArrThread, int n,  void *(*func)(void*), int amoutBits, int sizeFile){
+void create_threads(thread_t *mapArrThread, int n,  void *(*func)(void*), int sizeFile){
     // pegar os valores 
     int start = 0, end;
     
@@ -54,11 +54,9 @@ void *mapper(void *args) {
     start = bits.start;
     end = bits.end;
 
-    // FOPEN, FSEEK, FREAD ...
-    // fopen();
-    // fread( start, end);
+    // INSERE AQUI A SEEK_AND_PARTITION funct
+    
 
-    // for loop percorrer cada string buscando o espaco
     
 	// while(1) {
 	// 	// item = produce_item();
@@ -112,9 +110,8 @@ int main(void) {
 
     printf("Size file: %i\n", sizeFile);
 
-    int amountBits = 0;
     // int sizeFile = 1000;
 
-    create_threads(mapArrThread, MAP, mapper, amountBits, sizeFile);
+    create_threads(mapArrThread, MAP, mapper, sizeFile);
     join_threads(mapArrThread, MAP);
 }

@@ -5,7 +5,7 @@
 typedef struct Node // Define struct do tipo nó
 {   
     int qtWord; // numero para calcular quantidade de palavras
-    char *chave; // string chave do nó 
+    char chave [25]; // string chave do nó 
     struct Node *prox; // ponteiro do proximo nó
 } Node;
 typedef Node *NodeTypeHash; // ponteiro para a struct Node
@@ -28,23 +28,21 @@ int insereElemLista (typeHash listaAux, char *value, int valor){ // Função de 
         return 0; // se não inseriu, retorna 0 pois algo deu errado
     }
 
-    novo->chave = value; 
-                         // string chave da struct Node recebe char value como sua nova string
+    strcpy(novo->chave, value); // string chave da struct Node recebe char value como sua nova string
     novo->qtWord = valor;
 
-    printf("Inseriu: %s\n", novo->chave);
-    printf("Valor da qt da palavra: %i\n", novo->qtWord);
+    // printf(" %s\n", novo->chave);
+    // printf("Valor da qt da palavra: %d \n", novo->qtWord);
 
     if (listaAux->primeiro == NULL){ //verificando o primeiro elemento da listaAux
-        novo->prox = NULL; //se for nulo, faz o ponteiro prox apontar para Null também
-        listaAux->primeiro = novo; //salva o primeiro elemento como 'novo' 
+        listaAux->primeiro = novo; //salva o primeiro elemento como 'novo'
         listaAux->ultimo = novo; //salva o último elemento como 'novo'
     } 
     
-    else{ //condição para primeiro não nulo
-        novo->prox = NULL; //faz o ponteiro prox apontar para Null
-        listaAux->ultimo->prox = novo;//salva o proximo elemento depois do ultimo como 'novo'
-        listaAux->ultimo = novo; ////salva o último elemento como 'novo'
+    else { //condição para primeiro não nulo
+        listaAux->primeiro->prox = novo;//salva o proximo elemento depois do ultimo como 'novo'
+        listaAux->ultimo = novo;
+        listaAux->ultimo->prox = NULL;
     }
 
     return 1; //retorna 1 se der tudo certo
@@ -97,10 +95,22 @@ int removeElementoLE(typeHash listaAux, char *value){ //função de remoção da
  
 
 void imprimeElementosLE (typeHash listaAux){ // print function for the chaned ones 
-    NodeTypeHash pAux;
-    
-    for (pAux = listaAux->primeiro; pAux != NULL; pAux = pAux->prox){ // iterate though the chaned items and print then out
-        printf("%i ", pAux->qtWord);
+    NodeTypeHash pAux = listaAux->primeiro;
+
+    // if(listaAux != NULL) {
+        
+    //     do{
+    //         printf("%d %s | ", pAux->qtWord, pAux->chave); 
+    //         if(pAux->prox != NULL){
+    //             pAux = pAux->prox;
+    //             printf("%d %s", pAux->qtWord, pAux->chave); 
+    //         }
+    //     } while(pAux->prox != NULL);
+    // }
+
+    while(pAux != NULL) {
+        printf("%d %s ", pAux->qtWord, pAux->chave); 
+        pAux = pAux->prox;
     }
 }
  
@@ -121,7 +131,7 @@ int insereTH(typeHash Taux, int tamHash, char *value, int index, int num){ // in
     // h = chave % tamHash;
     // printf("value: %i\n", value);
     // call the function to insert the element on the right key-location
-    printf("Inserindo em [%i]: \n", index);
+    // printf("Inserindo em [%i]: \n", index);
     return insereElemLista(&(Taux[index]), value, num);
 }
  
