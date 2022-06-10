@@ -4,7 +4,7 @@
 
 void ler()
 {
-  FILE *file = fopen("text.txt", "r");
+  FILE *file = fopen("example.txt", "r");
   char string[30];
   int i = 0;
   int bits = 0;
