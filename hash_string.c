@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string.h>             
 
 typedef struct Node // Define struct do tipo nó
 {   
@@ -40,7 +40,7 @@ int insereElemLista (typeHash listaAux, char *value, int valor){ // Função de 
     } 
     
     else { //condição para primeiro não nulo
-        listaAux->primeiro->prox = novo;//salva o proximo elemento depois do ultimo como 'novo'
+        listaAux->ultimo->prox = novo;//salva o proximo elemento depois do ultimo como 'novo'
         listaAux->ultimo = novo;
         listaAux->ultimo->prox = NULL;
     }
@@ -65,37 +65,53 @@ NodeTypeHash buscaElemento (typeHash listaAux, char *value){ //função para pro
  
 
 
-int removeElementoLE(typeHash listaAux, char *value){ //função de remoção da string chave
-    NodeTypeHash pAnt, remover = buscaElemento(listaAux, value); //cria um nó pAnt do tipo NodetypeHash e outro que aponta a string para remover
+int removeElementoLE(typeHash listaAux, char *value)
+{                                                              // função de remoção da string chave
+  NodeTypeHash pAnt, remover = buscaElemento(listaAux, value); // cria um nó pAnt do tipo NodetypeHash e outro que aponta a string para remover
 
-    if (listaAux->primeiro == NULL || remover == NULL){ //checa se há elementos a serem removidos
-        return 0; //se não há o que ser removido, retorna 0
-    }
+  if (listaAux->primeiro == NULL || remover == NULL)
+  {           // checa se há elementos a serem removidos
+    return 0; // se não há o que ser removido, retorna 0
+  }
 
-    if (remover == listaAux->primeiro){ //checa se o elemento a ser removido é igual ao primeiro item da lista
-        listaAux->primeiro = listaAux->primeiro->prox; //se for, 'primeiro' aponta para a proxima string
-    }
-    
-    else{
-        for (pAnt = listaAux->primeiro; pAnt != NULL; pAnt = pAnt->prox){  // iteração para percorrer a listaAux do primeiro até o fim da lista
-            if (pAnt->prox == remover){ // if we found the node to be removed
-                pAnt->prox = remover->prox; // point the aux pointer to be the next one of the remotion
+  if (strcmp(remover->chave, listaAux->primeiro->chave) == 0)
+  {
+    // printf("PRIMEIRO ELEMENTO listaAux->primeiro: %s\n", listaAux->primeiro->chave);
+                                                    // checa se o elemento a ser removido é igual ao primeiro item da lista
+    listaAux->primeiro = listaAux->primeiro->prox; // se for, 'primeiro' aponta para a proxima string
+  }
 
-            if (remover == listaAux->ultimo) 
-                listaAux->ultimo = pAnt;
-            break;
+  else
+  {
+    for (pAnt = listaAux->primeiro; pAnt != NULL; pAnt = pAnt->prox)
+    { // iteração para percorrer a listaAux do primeiro até o fim da lista
+      // if (pAnt->prox == remover)
+      if(strcmp(pAnt->prox->chave, remover->chave) == 0)
+      { // condição do nó a ser removido ser encontrado
+        // printf("\n\n"); 
+        // printf("pAnt->chave: %s\n", pAnt->chave);
+        // printf("pAnt->prox->chave: %s | remover->prox: %s\n", pAnt->prox->chave, remover->chave);
+        // printf("\n\n");
+        pAnt->prox = remover->prox;
 
-            }
+        // if (remover == listaAux->ultimo) //se remover for o ultimo valor 
+        if (strcmp(remover->chave, listaAux->ultimo->chave) == 0){
+        //   printf("ultimo valor para remover\n");
+          listaAux->ultimo = pAnt;
         }
+        break;
+      }
     }
+  }
 
-    free(remover);
-    return 1; 
+  free(remover);
+  return 1;
 }
  
 
 void imprimeElementosLE (typeHash listaAux){ // print function for the chaned ones 
     NodeTypeHash pAux = listaAux->primeiro;
+
 
     // if(listaAux != NULL) {
         

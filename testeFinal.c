@@ -38,11 +38,14 @@ typedef struct HashTable // Define struct para a tabela hash
 typedef HashTable *typeHash; // ponteiro para a struct HashTable
 
 #define MAP 2
+#define REDUCE 5
 HashTable TH[5];
 thread_t mapArrThread[MAP];
+thread_t mapReduceThread[REDUCE];
 sem_t mutex_mapper; // mutex para mappers
 
 void inicializaTH(typeHash Taux, int tamHash);
+int insereTH(typeHash Taux, int tamHash, char *value, int index, int num);
 
 void init(void)
 {
@@ -86,7 +89,7 @@ void *mapper(void *args)
   end = bits.end;
 
   int calculatedIndex = 0;
-  FILE *file = fopen("text.txt", "r");
+  FILE *file = fopen("example.txt", "r");
   char string[30];
   int i = 0;
   int bitsControle = 0;
@@ -116,8 +119,8 @@ void *mapper(void *args)
           // calculando o indice na hashTable
           calculatedIndex = string[0] % 5;
           sem_wait(&mutex_mapper);
-          insereTH(TH, 5, &string, calculatedIndex, 1);
           printf("Print %s de thread %i - %i\n", string, start, end);
+          insereTH(TH, 5, &string, calculatedIndex, 1);
           fflush(stdout);
           sem_post(&mutex_mapper);
         }
@@ -128,8 +131,9 @@ void *mapper(void *args)
         {
           string[i] = '\0';
           // calculando o indice na hashTable
-          calculatedIndex = string[0] % tamHash;
+          calculatedIndex = string[0] % 5;
           sem_wait(&mutex_mapper);
+          insereTH(TH, 5, &string, calculatedIndex, 1);
           printf("Print %s de thread %i - %i\n", string, start, end);
           fflush(stdout);
           sem_post(&mutex_mapper);
@@ -146,6 +150,14 @@ void *mapper(void *args)
 
   // printf("Mapper read bits from %i to %i\n", start, end);
   // fflush(stdout);
+}
+
+void *reducer(void *args) {
+  // TODO
+    // Fazer iteracao pela hash table TH[5]
+    // para cada item repetido salvar um valor 
+    // assim que terminar a iteracao, escrever no arquivo result.txt no formato  1 eu 
+
 }
 
 int sizeText(char *fileSize)
@@ -207,12 +219,13 @@ int insereElemLista(typeHash listaAux, char *value, int valor)
 NodeTypeHash buscaElemento(typeHash listaAux, char *value)
 {                    // função para procurar a string chave
   NodeTypeHash pAux; // nó auxiliar tipo NodeTypeHash
-
+  // printf("PRIMEIRO ELEMENTO listaAux->primeiro: %s\n", listaAux->primeiro->chave);
   for (pAux = listaAux->primeiro; pAux != NULL; pAux = pAux->prox)
   { // faz um loop até encontrar a chave ou chegar no final da lista
-    if (pAux->chave == value)
+    // if (pAux->chave == value)
+    if (strcmp(pAux->chave, value) == 0)
     { // se encontrou a chave, retorna o ponteiro
-      printf("FOUND!\n");
+      printf("FOUND  %s!\n", pAux->chave);
       return pAux;
     }
   }
@@ -228,8 +241,10 @@ int removeElementoLE(typeHash listaAux, char *value)
     return 0; // se não há o que ser removido, retorna 0
   }
 
-  if (remover == listaAux->primeiro)
-  {                                                // checa se o elemento a ser removido é igual ao primeiro item da lista
+  if (strcmp(remover->chave, listaAux->primeiro->chave) == 0)
+  {
+    printf("PRIMEIRO ELEMENTO listaAux->primeiro: %s\n", listaAux->primeiro->chave);
+                                                    // checa se o elemento a ser removido é igual ao primeiro item da lista
     listaAux->primeiro = listaAux->primeiro->prox; // se for, 'primeiro' aponta para a proxima string
   }
 
@@ -237,12 +252,20 @@ int removeElementoLE(typeHash listaAux, char *value)
   {
     for (pAnt = listaAux->primeiro; pAnt != NULL; pAnt = pAnt->prox)
     { // iteração para percorrer a listaAux do primeiro até o fim da lista
-      if (pAnt->prox == remover)
+      // if (pAnt->prox == remover)
+      if(strcmp(pAnt->prox->chave, remover->chave) == 0)
       { // condição do nó a ser removido ser encontrado
+        // printf("\n\n"); 
+        // printf("pAnt->chave: %s\n", pAnt->chave);
+        // printf("pAnt->prox->chave: %s | remover->prox: %s\n", pAnt->prox->chave, remover->chave);
+        // printf("\n\n");
         pAnt->prox = remover->prox;
 
-        if (remover == listaAux->ultimo)
+        // if (remover == listaAux->ultimo) //se remover for o ultimo valor 
+        if (strcmp(remover->chave, listaAux->ultimo->chave) == 0){
+          printf("ultimo valor para remover\n");
           listaAux->ultimo = pAnt;
+        }
         break;
       }
     }
@@ -282,7 +305,7 @@ int buscaTH(typeHash Taux, int tamHash, char *value, int index)
 { // busca na tabela hash
   NodeTypeHash busca = buscaElemento(&(Taux[index]), value);
   if (busca != NULL) // se o item for encontrado, retorna 1; se não for, retorna 0
-    return 1;
+    return 1; 
   else
     return 0;
 }
@@ -306,7 +329,7 @@ int main(void)
 {
   init();
 
-  char *file = "text.txt"; // name of the file
+  char *file = "example.txt"; // name of the file
 
   int sizeFile = sizeText(file); // call the function and save the amount of bits
 
@@ -315,6 +338,16 @@ int main(void)
   // int sizeFile = 1000;
 
   create_threads(mapArrThread, MAP, mapper, sizeFile);
+  // create_threads(mapReduceThread, REDUCE, mapper, sizeFile);
   join_threads(mapArrThread, MAP);
+
+  // printf("FUNCIONOU\n");
   imprimeTH(TH, 5);
+
+  char *palavra = "Fusce";
+  if(buscaTH(TH, 5, palavra, 0) == 1) {
+    removeTH(TH, 5, palavra, 0);
+  //   // printf("REMOVEU!\n");
+    imprimeTH(TH, 5);
+  }
 }
