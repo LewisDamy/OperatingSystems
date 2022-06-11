@@ -55,7 +55,7 @@ void init(void)
 
 void create_threads(thread_t *mapArrThread, int n, void *(*func)(void *), int sizeFile)
 {
-  // pegar os valores 
+  // pegar os valores
   int start = 0, end;
 
   for (int i = 0; i < n; i++)
@@ -81,18 +81,17 @@ void join_threads(thread_t *mapArrThread, int n)
 
 void *mapper(void *args)
 {
-
   int start, end;
   threadArgs bits = *(threadArgs *)args;
 
   start = bits.start;
   end = bits.end;
 
-  int calculatedIndex = 0;
+  int calculatedIndex = 0; // funcao para inserir na hashT
   FILE *file = fopen("example.txt", "r");
   char string[30];
   int i = 0;
-  int bitsControle = 0;
+  int bitsControle = 0; // qntde de bits a serem lidos por cada mapper
   char aux;
   // inicializando o vetor string
   memset(string, 0, 30);
@@ -101,7 +100,6 @@ void *mapper(void *args)
   {
     // ira ler a partir do indice start
     fseek(file, start, SEEK_CUR);
-    // printf("\tDados lidos do arquivo:\n");
     /*enquanto a qntde limite de bits de cada mapper
     nao eh atingida*/
     while (bitsControle < (end - start))
@@ -125,6 +123,7 @@ void *mapper(void *args)
           sem_post(&mutex_mapper);
         }
       }
+      // se aux for uma pontuacao indica que a palavra terminou
       else
       {
         if (i != 0)
@@ -145,23 +144,18 @@ void *mapper(void *args)
     }
     fclose(file);
   }
-  //   else
-  // printf("\nERRO ao abrir arquivo!\n");
-
-  // printf("Mapper read bits from %i to %i\n", start, end);
-  // fflush(stdout);
 }
 
-void *reducer(void *args) {
+void *reducer(void *args)
+{
   // TODO
-    // Fazer iteracao pela hash table TH[5]
-    // para cada item repetido salvar um valor 
-    // assim que terminar a iteracao, escrever no arquivo result.txt no formato  1 eu
-    //char *palavra = "Fusce";
-    //NodeTypeHash node = buscaElemento(TH, palavra);
-    // node->qtWord  // contem o numero 1 da palavra buscada
-    // node->chave // chave[50] que e a propria palavra
-    
+  // Fazer iteracao pela hash table TH[5]
+  // para cada item repetido salvar um valor
+  // assim que terminar a iteracao, escrever no arquivo result.txt no formato  1 eu
+  // char *palavra = "Fusce";
+  // NodeTypeHash node = buscaElemento(TH, palavra);
+  // node->qtWord  // contem o numero 1 da palavra buscada
+  // node->chave // chave[50] que e a propria palavra
 }
 
 int sizeText(char *fileSize)
@@ -248,7 +242,7 @@ int removeElementoLE(typeHash listaAux, char *value)
   if (strcmp(remover->chave, listaAux->primeiro->chave) == 0)
   {
     // printf("PRIMEIRO ELEMENTO listaAux->primeiro: %s\n", listaAux->primeiro->chave);
-                                                    // checa se o elemento a ser removido é igual ao primeiro item da lista
+    // checa se o elemento a ser removido é igual ao primeiro item da lista
     listaAux->primeiro = listaAux->primeiro->prox; // se for, 'primeiro' aponta para a proxima string
   }
 
@@ -257,16 +251,17 @@ int removeElementoLE(typeHash listaAux, char *value)
     for (pAnt = listaAux->primeiro; pAnt != NULL; pAnt = pAnt->prox)
     { // iteração para percorrer a listaAux do primeiro até o fim da lista
       // if (pAnt->prox == remover)
-      if(strcmp(pAnt->prox->chave, remover->chave) == 0)
+      if (strcmp(pAnt->prox->chave, remover->chave) == 0)
       { // condição do nó a ser removido ser encontrado
-        // printf("\n\n"); 
+        // printf("\n\n");
         // printf("pAnt->chave: %s\n", pAnt->chave);
         // printf("pAnt->prox->chave: %s | remover->prox: %s\n", pAnt->prox->chave, remover->chave);
         // printf("\n\n");
         pAnt->prox = remover->prox;
 
-        // if (remover == listaAux->ultimo) //se remover for o ultimo valor 
-        if (strcmp(remover->chave, listaAux->ultimo->chave) == 0){
+        // if (remover == listaAux->ultimo) //se remover for o ultimo valor
+        if (strcmp(remover->chave, listaAux->ultimo->chave) == 0)
+        {
           // printf("ultimo valor para remover\n");
           listaAux->ultimo = pAnt;
         }
@@ -309,7 +304,7 @@ int buscaTH(typeHash Taux, int tamHash, char *value, int index)
 { // busca na tabela hash
   NodeTypeHash busca = buscaElemento(&(Taux[index]), value);
   if (busca != NULL) // se o item for encontrado, retorna 1; se não for, retorna 0
-    return 1; 
+    return 1;
   else
     return 0;
 }
@@ -355,5 +350,4 @@ int main(void)
   // //   // printf("REMOVEU!\n");
   //   imprimeTH(TH, 5);
   // }
-
 }
