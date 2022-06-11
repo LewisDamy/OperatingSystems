@@ -61,13 +61,13 @@ void create_threads(thread_t *mapArrThread, int n, void *(*func)(void *), int si
   for (int i = 0; i < n; i++)
   {
     mapArrThread[i].bits.start = start;
-    end = sizeFile / MAP - 1 + start;
+    end = sizeFile / MAP + start;
     mapArrThread[i].bits.end = end;
     if (pthread_create(&mapArrThread[i].t, NULL, func, &mapArrThread[i].bits) == 0)
     {
       printf("Created thread %i!\n", i);
     }
-    start = end + 1;
+    start = end;
   }
 }
 
@@ -157,8 +157,8 @@ void *reducer(void *args) {
     // Fazer iteracao pela hash table TH[5]
     // para cada item repetido salvar um valor 
     // assim que terminar a iteracao, escrever no arquivo result.txt no formato  1 eu
-    char *palavra = "Fusce";
-    NodeTypeHash node = buscaElemento(TH, palavra);
+    //char *palavra = "Fusce";
+    //NodeTypeHash node = buscaElemento(TH, palavra);
     // node->qtWord  // contem o numero 1 da palavra buscada
     // node->chave // chave[50] que e a propria palavra
     
