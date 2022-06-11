@@ -55,7 +55,7 @@ void init(void)
 
 void create_threads(thread_t *mapArrThread, int n, void *(*func)(void *), int sizeFile)
 {
-  // pegar os valores
+  // pegar os valores 
   int start = 0, end;
 
   for (int i = 0; i < n; i++)
@@ -156,8 +156,12 @@ void *reducer(void *args) {
   // TODO
     // Fazer iteracao pela hash table TH[5]
     // para cada item repetido salvar um valor 
-    // assim que terminar a iteracao, escrever no arquivo result.txt no formato  1 eu 
-
+    // assim que terminar a iteracao, escrever no arquivo result.txt no formato  1 eu
+    char *palavra = "Fusce";
+    NodeTypeHash node = buscaElemento(TH, palavra);
+    // node->qtWord  // contem o numero 1 da palavra buscada
+    // node->chave // chave[50] que e a propria palavra
+    
 }
 
 int sizeText(char *fileSize)
@@ -243,7 +247,7 @@ int removeElementoLE(typeHash listaAux, char *value)
 
   if (strcmp(remover->chave, listaAux->primeiro->chave) == 0)
   {
-    printf("PRIMEIRO ELEMENTO listaAux->primeiro: %s\n", listaAux->primeiro->chave);
+    // printf("PRIMEIRO ELEMENTO listaAux->primeiro: %s\n", listaAux->primeiro->chave);
                                                     // checa se o elemento a ser removido é igual ao primeiro item da lista
     listaAux->primeiro = listaAux->primeiro->prox; // se for, 'primeiro' aponta para a proxima string
   }
@@ -263,7 +267,7 @@ int removeElementoLE(typeHash listaAux, char *value)
 
         // if (remover == listaAux->ultimo) //se remover for o ultimo valor 
         if (strcmp(remover->chave, listaAux->ultimo->chave) == 0){
-          printf("ultimo valor para remover\n");
+          // printf("ultimo valor para remover\n");
           listaAux->ultimo = pAnt;
         }
         break;
@@ -338,16 +342,18 @@ int main(void)
   // int sizeFile = 1000;
 
   create_threads(mapArrThread, MAP, mapper, sizeFile);
-  // create_threads(mapReduceThread, REDUCE, mapper, sizeFile);
   join_threads(mapArrThread, MAP);
 
-  // printf("FUNCIONOU\n");
+  // create_threads(mapReduceThread, REDUCE, reducer, sizeFile);
+  // join_threads(mapReduceThread, REDUCE);
+
   imprimeTH(TH, 5);
 
-  char *palavra = "Fusce";
-  if(buscaTH(TH, 5, palavra, 0) == 1) {
-    removeTH(TH, 5, palavra, 0);
-  //   // printf("REMOVEU!\n");
-    imprimeTH(TH, 5);
-  }
+  // char *palavra = "Fusce";
+  // if(buscaTH(TH, 5, palavra, 0) == 1) {
+  //   removeTH(TH, 5, palavra, 0);
+  // //   // printf("REMOVEU!\n");
+  //   imprimeTH(TH, 5);
+  // }
+
 }
