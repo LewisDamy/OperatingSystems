@@ -157,19 +157,27 @@ void *mapper(void *args)
 }
 
 NodeTypeHash buscaElemento(typeHash listaAux, char *value)
-{                    // função para procurar a string chave
+{
   NodeTypeHash pAux; // nó auxiliar tipo NodeTypeHash
-  //   printf("PRIMEIRO ELEMENTO listaAux->primeiro: %s\n", listaAux->primeiro->chave);
+  char *ocorrencia;  // guardar as outras ocorrencias das chaves e seus enderecos
   for (pAux = listaAux->primeiro; pAux != NULL; pAux = pAux->prox)
-  { // faz um loop até encontrar a chave ou chegar no
+  {
+    // faz um loop até encontrar a chave ou chegar no
     // final da lista
-    // if (pAux->chave == value)
-    if (strcmp(pAux->chave, value) == 0)
-    { // se encontrou a chave, retorna o ponteiro
-      // printf("FOUND  %s!\n", pAux->chave);
-      return pAux;
+    ocorrencia = pAux->chave;
+    if (strcmp(ocorrencia, value) == 0)
+    { // se as strings sao iguais
+      if (ocorrencia != value)
+      {
+        /*comparando os enderecos para checar se as chaves
+         estao em indexes diferentes*/
+        printf("string recebida do reducer: %s\n", value);
+        printf("retornando %s, end %d que deve ser diferente de %d\n", pAux->chave, ocorrencia, value);
+        return pAux;
+      }
     }
   }
+  printf("nao foram encontradas correspondencias\n");
   return NULL; // do contrário, retorna nulo
 }
 
@@ -226,24 +234,21 @@ int removeElementoEscolhido(typeHash listaAux, NodeTypeHash remover, char *value
 
 void *reducer(void *args)
 {
+  int i = *(int *)args;                             // cast de tipo de variavel
+  NodeTypeHash primeiraOcorrencia = TH[i].primeiro; // primeira chave a ser comparada
+  NodeTypeHash outrasOcorrencias;                   // segunda chave a ser comparada e deletada
+  char *chaveComparada = TH[i].primeiro->chave;
+  // ponteiro char para passar como parametro a primeira chave a ser comparada
 
-  int i = *(int *)args; // cast de tipo de variavel
+  printf("-----inicio thread %d-----\n", i);
+  outrasOcorrencias = buscaElemento(&(TH[i]), chaveComparada);
+  printf("-----fim thread %d-----\n", i);
 
-  int total = 0;
-  typeHash listaAux;
-  NodeTypeHash pAux;
-  char *chaveComparada = TH[i].primeiro->chave; // primeira string da hashT
-  pAux = listaAux->primeiro;
-  if (removeElementoLE(&(TH[i]), chaveComparada) == 0)
+  if (outrasOcorrencias != NULL) // se houver outras ocorrencias
   {
-    /*se removeElementoLE é igual a 0, todas as chaves coincidentes foram removidas
-    e sera comparada a proxima chave da hashTable */
-    printf("todas removidas do indice %d\n", i);
-    chaveComparada = pAux->chave;
+    primeiraOcorrencia->qtWord++; // somar a qntde de palavras da primeira ocorrencia
   }
-  else
-    printf("nao foram todas removidas do indice %d\n", i);
-  pAux = pAux->prox;
+  removeElementoLE(&(TH[i]), outrasOcorrencias); // excluindo as outras ocorrencias
 }
 
 void imprimeHash()
@@ -275,10 +280,13 @@ void imprimeHash()
 // node->qtWord  // contem o numero 1 da palavra buscada
 // node->chave // chave[50] que e a propria palavra
 
-int removeElementoLE(typeHash listaAux, char *value)
-{                                                              // função de remoção da string chave
-  NodeTypeHash pAnt, remover = buscaElemento(listaAux, value); // cria um nó pAnt do tipo NodetypeHash e
-                                                               // outro que aponta a string para remover
+int removeElementoLE(typeHash listaAux, NodeTypeHash remover)
+{
+  // funcao para remover as demais ocorrencias
+  NodeTypeHash pAnt;                            // no anterior ao que sera excluido
+  NodeTypeHash primeiraChave, ultChave, pAtual; // no atual
+  primeiraChave = listaAux->primeiro;
+  ultChave = listaAux->ultimo;
 
   if (listaAux->primeiro == NULL ||
       remover == NULL)
@@ -286,43 +294,32 @@ int removeElementoLE(typeHash listaAux, char *value)
     return 0; // se não há o que ser removido, retorna 0
   }
 
-  if (strcmp(remover->chave, listaAux->primeiro->chave) == 0)
+  if (primeiraChave == remover)
   {
-    // printf("PRIMEIRO ELEMENTO listaAux->primeiro: %s\n",
-    // listaAux->primeiro->chave); checa se o elemento a ser removido é igual ao
+    // checa se o elemento a ser removido é o
     // primeiro item da lista
-    listaAux->primeiro->prox->qtWord += listaAux->primeiro->qtWord; // somando os valores das chaves
     listaAux->primeiro =
         listaAux->primeiro->prox; // se for, 'primeiro' aponta para a proxima string
   }
-
   else
   {
     for (pAnt = listaAux->primeiro; pAnt != NULL; pAnt = pAnt->prox)
-    { // iteração para percorrer a listaAux do primeiro
+    {
+      pAtual = pAnt->prox;
+      // iteração para percorrer a listaAux do primeiro
       // até o fim da lista
-      // if (pAnt->prox == remover)
-      if (strcmp(pAnt->prox->chave, remover->chave) == 0)
+      if (pAtual == remover)
       { // condição do nó a ser removido ser encontrado
-        // printf("\n\n");
-        // printf("pAnt->chave: %s\n", pAnt->chave);
-        // printf("pAnt->prox->chave: %s | remover->prox: %s\n",
-        // pAnt->prox->chave, remover->chave); printf("\n\n");
-        remover->prox->qtWord += pAnt->prox->qtWord; // somando os valores das chaves
         pAnt->prox = remover->prox;
-
-        // if (remover == listaAux->ultimo) //se remover for o ultimo valor
-        if (strcmp(remover->chave, listaAux->ultimo->chave) == 0)
+        // se remover for o ultimo valor
+        if (ultChave == remover)
         {
-          // printf("ultimo valor para remover\n");
-          pAnt->qtWord += listaAux->ultimo->qtWord; // somando os valores das chaves
           listaAux->ultimo = pAnt;
         }
         break;
       }
     }
   }
-
   free(remover);
   return 1;
 }
@@ -428,9 +425,9 @@ int buscaTH(typeHash Taux, int tamHash, char *value, int index)
 
 int removeTH(typeHash Taux, int tamHash, char *value, int index)
 { // remove da tabela hash
-  return removeElementoLE(&(Taux[index]),
-                          value); // função chamada para remover o elemento na
-                                  // posição específica da chave
+  // return removeElementoLE(&(Taux[index]),
+  //                       value); // função chamada para remover o elemento na
+  // posição específica da chave
 }
 
 void imprimeTH(typeHash Taux, int tamHash)
