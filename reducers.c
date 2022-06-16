@@ -46,6 +46,7 @@ thread_t mapArrThread[MAP];
 thread_t mapReduceThread[REDUCE];
 sem_t mutex_mapper; // mutex para mappers
 
+void imprimeTH(typeHash Taux, int tamHash);
 void inicializaTH(typeHash Taux, int tamHash);
 int insereTH(typeHash Taux, int tamHash, char *value, int index, int num);
 
@@ -227,19 +228,22 @@ void *reducer(void *args)
 {
 
   int i = *(int *)args; // cast de tipo de variavel
-  int total = 0;
-  // printf("i: %i\n", i);
-  // fflush(stdout);
 
+  int total = 0;
   typeHash listaAux;
-  NodeTypeHash primeiro = TH[i].primeiro;
-  char *primeiraChave = primeiro->chave;
-  printf("a string eh %s\n", primeiraChave);
-  // ocorrencia = buscaElemento(listaAux, primeiraChave);
-  NodeTypeHash ocorrencia = buscaElemento(&(listaAux[i]), primeiraChave);
-  // printf("recebido da func busca = %s\n", ocorrencia->chave);
-  // ocorrencia = buscaElemento(listaAux, primeiro);
-  // printf("aux->chave %s\n", aux->chave);
+  NodeTypeHash pAux;
+  char *chaveComparada = TH[i].primeiro->chave; // primeira string da hashT
+  pAux = listaAux->primeiro;
+  if (removeElementoLE(&(TH[i]), chaveComparada) == 0)
+  {
+    /*se removeElementoLE é igual a 0, todas as chaves coincidentes foram removidas
+    e sera comparada a proxima chave da hashTable */
+    printf("todas removidas do indice %d\n", i);
+    chaveComparada = pAux->chave;
+  }
+  else
+    printf("nao foram todas removidas do indice %d\n", i);
+  pAux = pAux->prox;
 }
 
 void imprimeHash()
@@ -287,6 +291,7 @@ int removeElementoLE(typeHash listaAux, char *value)
     // printf("PRIMEIRO ELEMENTO listaAux->primeiro: %s\n",
     // listaAux->primeiro->chave); checa se o elemento a ser removido é igual ao
     // primeiro item da lista
+    listaAux->primeiro->prox->qtWord += listaAux->primeiro->qtWord; // somando os valores das chaves
     listaAux->primeiro =
         listaAux->primeiro->prox; // se for, 'primeiro' aponta para a proxima string
   }
@@ -303,12 +308,14 @@ int removeElementoLE(typeHash listaAux, char *value)
         // printf("pAnt->chave: %s\n", pAnt->chave);
         // printf("pAnt->prox->chave: %s | remover->prox: %s\n",
         // pAnt->prox->chave, remover->chave); printf("\n\n");
+        remover->prox->qtWord += pAnt->prox->qtWord; // somando os valores das chaves
         pAnt->prox = remover->prox;
 
         // if (remover == listaAux->ultimo) //se remover for o ultimo valor
         if (strcmp(remover->chave, listaAux->ultimo->chave) == 0)
         {
           // printf("ultimo valor para remover\n");
+          pAnt->qtWord += listaAux->ultimo->qtWord; // somando os valores das chaves
           listaAux->ultimo = pAnt;
         }
         break;
@@ -479,6 +486,7 @@ int main(void)
   create_reducer_threads(mapReduceThread, REDUCE, reducer);
 
   join_threads(mapReduceThread, REDUCE);
+  imprimeTH(TH, 5);
 
   // for (int i = 0; i < 5; i++)
   //     pthread_join(mapReduceThread[i].t, NULL);
