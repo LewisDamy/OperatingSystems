@@ -12,7 +12,7 @@
   Grupo:
   Francine Gonçalves Franco - RA: 141363
   Isabela Cristina Silva Pedro - RA: 141658
-  Luis Dumy - RA: 150009
+  Luis Damy - RA: 150009
   Melissa Frigi Mendes - RA: 133693
 */
 
