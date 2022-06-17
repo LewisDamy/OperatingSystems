@@ -46,9 +46,21 @@ thread_t mapArrThread[MAP];
 thread_t mapReduceThread[REDUCE];
 sem_t mutex_mapper; // mutex para mappers
 
-void imprimeTH(typeHash Taux, int tamHash);
+void init(void);
+void create_threads(thread_t *mapArrThread, int n, void *(*func)(void *), int sizeFile);
+void join_threads(thread_t *mapArrThread, int n);
+void *mapper(void *args);
+NodeTypeHash buscaElemento(typeHash listaAux, char *value);
+void *reducer(void *args);
+int removeElementoLE(typeHash listaAux, NodeTypeHash remover);
+int sizeText(char *fileSize);
+int insereElemLista(typeHash listaAux, char *value, int valor);
+void imprimeElementosLE(typeHash listaAux);
 void inicializaTH(typeHash Taux, int tamHash);
 int insereTH(typeHash Taux, int tamHash, char *value, int index, int num);
+void imprimeTH(typeHash Taux, int tamHash);
+void create_reducer_threads(thread_t *mapReduceThread, int n, void *(*func)(void *));
+int writeNewFile(void);
 
 void init(void)
 {
@@ -171,65 +183,14 @@ NodeTypeHash buscaElemento(typeHash listaAux, char *value)
       {
         /*comparando os enderecos para checar se as chaves
          estao em indexes diferentes*/
-        printf("string recebida do reducer: %s\n", value);
-        printf("retornando %s, end %d que deve ser diferente de %d\n", pAux->chave, ocorrencia, value);
+        // printf("string recebida do reducer: %s\n", value);
+        // printf("retornando %s, end %d que deve ser diferente de %d\n", pAux->chave, ocorrencia, value);
         return pAux;
       }
     }
   }
-  printf("nao foram encontradas correspondencias\n");
+  // printf("nao foram encontradas correspondencias\n");
   return NULL; // do contrário, retorna nulo
-}
-
-int removeElementoEscolhido(typeHash listaAux, NodeTypeHash remover, char *value)
-{                    // função de remoção da string chave
-  NodeTypeHash pAnt; // cria um nó pAnt do tipo NodetypeHash e outro que aponta
-                     // a string para remover
-
-  if (listaAux->primeiro == NULL ||
-      remover == NULL)
-  {           // checa se há elementos a serem removidos
-    return 0; // se não há o que ser removido, retorna 0
-  }
-
-  if (strcmp(remover->chave, listaAux->primeiro->chave) == 0)
-  {
-    // printf("PRIMEIRO ELEMENTO listaAux->primeiro: %s\n",
-    // listaAux->primeiro->chave); checa se o elemento a ser removido é igual ao
-    // primeiro item da lista
-    listaAux->primeiro =
-        listaAux->primeiro->prox; // se for, 'primeiro' aponta para a proxima string
-  }
-
-  else
-  {
-    for (pAnt = listaAux->primeiro; pAnt != NULL;
-         pAnt = pAnt->prox)
-    { // iteração para percorrer a listaAux do primeiro
-      // até o fim da lista
-      // if (pAnt->prox == remover)
-      if (strcmp(pAnt->prox->chave, remover->chave) ==
-          0)
-      { // condição do nó a ser removido ser encontrado
-        // printf("\n\n");
-        // printf("pAnt->chave: %s\n", pAnt->chave);
-        // printf("pAnt->prox->chave: %s | remover->prox: %s\n",
-        // pAnt->prox->chave, remover->chave); printf("\n\n");
-        pAnt->prox = remover->prox;
-
-        // if (remover == listaAux->ultimo) //se remover for o ultimo valor
-        if (strcmp(remover->chave, listaAux->ultimo->chave) == 0)
-        {
-          // printf("ultimo valor para remover\n");
-          listaAux->ultimo = pAnt;
-        }
-        break;
-      }
-    }
-  }
-
-  free(remover);
-  return 1;
 }
 
 void *reducer(void *args)
@@ -237,48 +198,23 @@ void *reducer(void *args)
   int i = *(int *)args;                             // cast de tipo de variavel
   NodeTypeHash primeiraOcorrencia = TH[i].primeiro; // primeira chave a ser comparada
   NodeTypeHash outrasOcorrencias;                   // segunda chave a ser comparada e deletada
+  NodeTypeHash pAux;
   char *chaveComparada = TH[i].primeiro->chave;
   // ponteiro char para passar como parametro a primeira chave a ser comparada
-
-  printf("-----inicio thread %d-----\n", i);
-  outrasOcorrencias = buscaElemento(&(TH[i]), chaveComparada);
-  printf("-----fim thread %d-----\n", i);
-
-  if (outrasOcorrencias != NULL) // se houver outras ocorrencias
+  for (pAux = TH[i].primeiro; pAux != NULL; pAux = pAux->prox)
   {
-    primeiraOcorrencia->qtWord++; // somar a qntde de palavras da primeira ocorrencia
-  }
-  removeElementoLE(&(TH[i]), outrasOcorrencias); // excluindo as outras ocorrencias
-}
+    primeiraOcorrencia = pAux;
+    chaveComparada = primeiraOcorrencia->chave;
+    outrasOcorrencias = buscaElemento(&(TH[i]), chaveComparada);
 
-void imprimeHash()
-{
-  NodeTypeHash aux;
-  int i;
-  FILE *fp;
-
-  fp = fopen("result.txt", "w"); // abre arquivo para escrita
-  for (i = 0; i < 5; i++)
-  { // percorre a hash lista a lista
-    aux = TH[i].primeiro;
-    while (aux != NULL)
+    while (outrasOcorrencias != NULL) // se houver outras ocorrencias
     {
-      fprintf(fp, "%i %s\n", aux->qtWord, aux->chave);
-      aux = aux->prox; // imprime a proxima palavra da hash
+      primeiraOcorrencia->qtWord++;                  // somar a qntde de palavras da primeira ocorrencia
+      removeElementoLE(&(TH[i]), outrasOcorrencias); // excluindo as outras ocorrencias
+      outrasOcorrencias = buscaElemento(&(TH[i]), chaveComparada);
     }
   }
-  fclose(fp);
 }
-
-// TODO
-// Fazer iteracao pela hash table TH[5]
-// para cada item repetido salvar um valor
-// assim que terminar a iteracao, escrever no arquivo result.txt no formato  1
-// eu
-// char *palavra = "Fusce";
-// NodeTypeHash node = buscaElemento(TH, palavra);
-// node->qtWord  // contem o numero 1 da palavra buscada
-// node->chave // chave[50] que e a propria palavra
 
 int removeElementoLE(typeHash listaAux, NodeTypeHash remover)
 {
@@ -343,7 +279,6 @@ int sizeText(char *fileSize)
     // save the value of the file
     sizeFile = buff->st_size;
     printf("Size of '%s' is %i bytes.\n", file, sizeFile);
-    // printf("size: %i\n", sizeFile);
   }
   else
   {
@@ -413,23 +348,6 @@ int insereTH(typeHash Taux, int tamHash, char *value, int index, int num)
   return insereElemLista(&(Taux[index]), value, num);
 }
 
-int buscaTH(typeHash Taux, int tamHash, char *value, int index)
-{ // busca na tabela hash
-  NodeTypeHash busca = buscaElemento(&(Taux[index]), value);
-  if (busca !=
-      NULL) // se o item for encontrado, retorna 1; se não for, retorna 0
-    return 1;
-  else
-    return 0;
-}
-
-int removeTH(typeHash Taux, int tamHash, char *value, int index)
-{ // remove da tabela hash
-  // return removeElementoLE(&(Taux[index]),
-  //                       value); // função chamada para remover o elemento na
-  // posição específica da chave
-}
-
 void imprimeTH(typeHash Taux, int tamHash)
 { // imprime a tabela hash
   for (int i = 0; i < tamHash; i++)
@@ -449,49 +367,59 @@ void create_reducer_threads(thread_t *mapReduceThread, int n, void *(*func)(void
     mapReduceThread[i].i = i;
     if (pthread_create(&mapReduceThread[i].t, NULL, func, &mapReduceThread[i].i) == 0)
     {
-      // printf("Created reducer thread %i!\n", i);
       fflush(stdout);
       index++;
     }
   }
 }
 
+int writeNewFile(void)
+{
+  char *fileName = "saida.txt";
+
+  FILE *fp = fopen(fileName, "w");
+  NodeTypeHash pAux;
+  ;
+
+  if (fp == NULL)
+  {
+    printf("Error opening the file %s \n", fileName);
+    return -1;
+  }
+  for (int i = 0; i < 5; i++)
+  {
+    for (pAux = TH[i].primeiro; pAux != NULL; pAux = pAux->prox)
+    {
+      fprintf(fp, "%i %s,\n", pAux->qtWord, pAux->chave);
+    }
+  }
+  return 0;
+}
+
 int main(void)
 {
-
   init();
 
-  char *file = "example.txt"; // name of the file
+  char *file = "example.txt"; // nome do arquivo  de origem
 
-  int sizeFile =
-      sizeText(file); // call the function and save the amount of bits
+  int sizeFile = sizeText(file); // obtendo a quantidade de bits
 
-  printf("Size file: %i\n", sizeFile);
-
-  // int sizeFile = 1000;
-
+  // MAPPERS
   create_threads(mapArrThread, MAP, mapper, sizeFile);
   join_threads(mapArrThread, MAP);
 
-  // create_threads(mapReduceThread, REDUCE, reducer, sizeFile);
-  // join_threads(mapReduceThread, REDUCE);
-
+  printf("---Hash Table---\n");
   imprimeTH(TH, 5);
-  //   for (int i = 0; i < 5; i++)
-  //     pthread_create(&mapReduceThread[i].t, NULL, reducer, &i);
 
+  // REDUCERS
   create_reducer_threads(mapReduceThread, REDUCE, reducer);
-
   join_threads(mapReduceThread, REDUCE);
+
+  printf("\n---Hash Table após reducers---\n");
   imprimeTH(TH, 5);
 
-  // for (int i = 0; i < 5; i++)
-  //     pthread_join(mapReduceThread[i].t, NULL);
-  // char *palavra = "Fusce";
-  // if(buscaTH(TH, 5, palavra, 0) == 1) {
-  //   removeTH(TH, 5, palavra, 0);
-  // //   // printf("REMOVEU!\n");
-  //   imprimeTH(TH, 5);
-  // }
-  printf("WORKS!\n");
+  if (writeNewFile() != 0)
+  {
+    printf("Erro ao escrever no arquivo.\n");
+  }
 }
