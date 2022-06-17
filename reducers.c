@@ -260,33 +260,22 @@ int removeElementoLE(typeHash listaAux, NodeTypeHash remover)
   return 1;
 }
 
-int sizeText(char *fileSize)
-{
-  // get the name of file
-  char *file = fileSize;
-  // define the variable to hold the size
-  int sizeFile;
-  // allocates memory for stat structure
-  struct stat *buff = malloc(sizeof(struct stat));
-  // always set errno to zero first, in case there's some error
-  errno = 0;
+int sizeText(char *fileSize) {
+  char *file = fileSize; // pega o nome do arquivo
+  int sizeFile; // define a variavel para conter o tamanho do arquivo
+  struct stat *buff = malloc(sizeof(struct stat)); // alloca memoria suficiente para a estrutura stat
+  errno = 0; // salve errno 0 inicialmente para caso haja algum erro na contagem
 
-  // run the function stat, passing the file to read, and the buffer to save the
-  // value
-  if (stat(file, buff) == 0)
-  { // int stat(const char *restrict pathname, struct
-    // stat *restrict statbuf);
-    // save the value of the file
-    sizeFile = buff->st_size;
-    printf("Size of '%s' is %i bytes.\n", file, sizeFile);
-  }
-  else
+  if (stat(file, buff) == 0) // roda a contagem da funca stat, passando o arquivo para ler o e buffer para salver a resposta
   {
-    perror(file); // if something went wrong
+    sizeFile = buff->st_size;  // salva o valor do tamanho do arquivo
+    printf("Size of '%s' is %i bytes.\n", file, sizeFile); // imprime o tamanho do arquivo
+  } else {
+    perror(file); // se alguma coisa der errado 
   }
-  free(buff);
+  free(buff); // libera a memoria alocada
 
-  return sizeFile;
+  return sizeFile; // retorna o tamanho do arquivo indicado
 }
 
 int insereElemLista(typeHash listaAux, char *value, int valor)
