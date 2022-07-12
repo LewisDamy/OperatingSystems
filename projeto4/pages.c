@@ -65,13 +65,18 @@ int main()
       initPaging(nodeAux, l, -1); // preenchendo com dados em SWAP area
     }
   }
-  for (int z = 0; z < amountPages; z++)
+  for (int z = 0; z < amountPages; z++) // testando
   {
     printf("index da pag: %d - adress %d - modified %d - inMemory %d\n", pages[z].index, pages[z].adress, pages[z].modified, pages[z].inMemory);
     if (pages[z].adress != -1)
       printf("conteudo %d\n", data[pages[z].adress]);
     else
       printf("sem link\n");
+    for (int w = 0; w < bitsReference; w++)
+    {
+      printf("%d ", pages[z].reference[w]);
+    }
+    printf("\n");
   }
   return 0;
 }
