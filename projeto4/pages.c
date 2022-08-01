@@ -7,21 +7,22 @@
 #define swapSize 20     // tamanho da memoria de swap
 #define amountPages 52  // qntde de paginas
 #define bitsReference 8 // qntde de bits de referencia da pagina
-// qntde de paginas = area de swap + RAM certo????
 
 typedef struct pageNode
 {
-  int index;                    // numero da pagina
-  int reference[bitsReference]; // referencias ao longo de 8 ciclos de clock
-  int adress;                   // endereco fisico nos quadros de pagina
-  int modified;                 // checar se foi modificada
-  int inMemory;                 // checar se esta na memoria
+  int index;    // numero da pagina
+  int dataInfo; // informacao sobre o dado requisitado
+  int bitsRef;  // referencias ao longo de 8 ciclos de clock
+  int adress;   // endereco fisico nos quadros de pagina
+  int modified; // checar se foi modificada
+  int inMemory; // checar se esta na memoria
 } page;
 
-page pages[amountPages];
-int swapArea[swapSize];
-int memoryArea[memorySize];
-char data[dataSize];
+page pages[amountPages];    // memoria virtual
+int swapArea[swapSize];     // SWAP
+int memoryArea[memorySize]; // RAM
+char data[dataSize];        // vetor de dados utilizados na aplicacao
+int input[50];              // palavras de no maximo 50 caracteres
 
 void initData(char *dataAux)
 {
@@ -41,31 +42,32 @@ void initData(char *dataAux)
   }
 }
 
-void initPaging(page *nodeAux, int pos, int status)
+void initPaging(int pos, int status, int aux)
 {
-  nodeAux->index = pos;
-  memset(nodeAux->reference, 0, bitsReference);
-  nodeAux->modified = 0;
+  pages[pos].index = pos;
+  pages[pos].bitsRef = 0;
+  pages[pos].modified = 0;
   if (status == 0) // se ela esta na memoria
   {
-    nodeAux->adress = pos;      // pagina de indice 0 correspondera ao quadro 0
-    nodeAux->inMemory = status; // informa se esta na memoria
+    pages[pos].adress = pos;      // pagina de indice 0 correspondera ao quadro 0
+    pages[pos].inMemory = status; // informa se esta na memoria
+    pages[pos].dataInfo = (int)memoryArea[aux];
   }
   else
   {
-    nodeAux->adress = status; // adress recebe -1 por nao estar na memoria
-    nodeAux->inMemory = status;
+    pages[pos].adress = status; // adress recebe -1 por nao estar na memoria
+    pages[pos].inMemory = status;
+    pages[pos].dataInfo = (int)swapArea[aux];
   }
 }
 
-int main()
+void initMemory()
 {
-  int i, j, l, k = 0; // variaveis auxiliares
-  page *nodeAux;
-  char *dataAux;
-  dataAux = data;
-  initData(dataAux);
-
+  int i, l;
+  int j;
+  int k = 0;
+  int aux = 0;
+  int aux2 = 0;
   for (i = 0; i < memorySize; i++) // preenchendo a memoria RAM com os primeiros indices
   {                                // do vetor data
     memoryArea[i] = data[i];
@@ -77,38 +79,86 @@ int main()
   }
   for (l = 0; l < amountPages; l++) // preenchendo a memoria virtual
   {
-    nodeAux = &pages[l];
     if (l < memorySize)
     {
-      initPaging(nodeAux, l, 0); // preenchendo com dados em memoria RAM
+      initPaging(l, 0, aux); // preenchendo com dados em memoria RAM
+      aux++;
     }
     else
     {
-      initPaging(nodeAux, l, -1); // preenchendo com dados em SWAP area
+      initPaging(l, -1, aux2); // preenchendo com dados em SWAP area
+      aux2++;
     }
   }
+}
+
+void reader(int events)
+{
+  for (int i = 0; i < events; i++)
+  {
+    // ler a palavra até enter (gerada randomicamente)
+    // colocar em cada indice do vetor input (var global) a letra em int
+  }
+}
+
+void pagesMenaging()
+{
+  // for do tamanho do vetor input
+  // se letra usada na palavra tiver na memoria bitsRef = 1
+  // se nao tiver sido usada na palavra e tiver na memoria bitsRef = 0
+  // se tiver na palavra e nao tiver na memoria -> aging
+}
+
+void aging()
+{
+}
+
+int main()
+{
+  int i, p, m, n; // variaveis auxiliares
+  char *dataAux;
+  int events;
+  dataAux = data;
+  initData(dataAux);
+  initMemory();
+  // loop while 1
+  printf("Insira a quantidade de palavras (eventos)\n");
+  scanf("%d", &events);
+  // reader(events);
+  // pagesMenaging;
 
   /* ------------------- prints de teste ----------------------- */
   // print do vetor data
-  for (int m = 0; m < dataSize; m++)
+  printf("-------- data ---------\n");
+  for (m = 0; m < dataSize; m++)
   {
     printf("%c ", *(dataAux + m));
   }
-  printf("\n");
 
   // print da struct pageNode
+  printf("\n-------- pages ---------\n");
   for (int z = 0; z < amountPages; z++)
   {
     printf("index da pag: %d - adress %d - modified %d - inMemory %d\n", pages[z].index, pages[z].adress, pages[z].modified, pages[z].inMemory);
-    if (pages[z].adress != -1)
-      printf("conteudo %d\n", data[pages[z].adress]);
-    else
+    printf("conteudo %d\n", pages[z].dataInfo);
+    if (pages[z].adress == -1)
       printf("sem link\n");
-    for (int w = 0; w < bitsReference; w++)
-    {
-      printf("%d ", pages[z].reference[w]);
-    }
+    printf("%d ", pages[z].bitsRef);
     printf("\n");
+  }
+
+  // print da SWAP
+  printf("\n-------- SWAP ---------\n");
+  for (n = 0; n < swapSize; n++)
+  {
+    printf("%c ", swapArea[n]);
+  }
+
+  // print da memoria RAM
+  printf("\n-------- RAM ---------\n");
+  for (p = 0; p < memorySize; p++)
+  {
+    printf("%c ", memoryArea[p]);
   }
   return 0;
 }
