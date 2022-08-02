@@ -138,16 +138,18 @@ int whichIsSmallest(void)
     return temp;
 }
 
-int isPageAvailable(int i)
+void isPageAvailable(int i)
 {
-    //achar a pag que tem o indice igual
-    stringOfReference[i] == pages[n]->index;
-    //checar se ta em memoria
-    pages->inMemory == 0
-    //se for
-    return 0;
-    //se nao for
-    return -1;
+    // percorrer o tamanho da memoria virtual e buscar pelo index
+     if(pages[n].index == stringOfReference){ //se a pagina referenciada ja estiver na memoria
+        for(n = 0; n < amountPages; n++){
+         // quando encontrado a struct page retorna ela
+            if(pages[n]->inMemory == 0)
+                return 0;    
+            else if(pages[n]->inMemory == -1)
+                return -1;   
+        }
+     }
 }
 
 int swapMemoryLocations(int index)
@@ -239,17 +241,7 @@ int main(void)
     initData(dataAux);
     initMemory(nodeAux);
     referencesCreator(); // cria a string de referencia à memoria
-    for(i = 0; i < referencesQnty; i++)
-    {
-        if(isPageAvailable(i) == 0) 
-        {
-            printf("ta em memoria");
-        }
-        else
-        {
-            printf("nao ta em memoria");
-        }
-    }
+
     // for(int i = 0; i < referencesQnty; i++) {
     //     pageIterationPrint(stringOfReference[i], i);
     // }
