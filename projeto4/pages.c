@@ -197,6 +197,22 @@ int main(void)
     printf("Insira a qntde de referências à memória: ");
     scanf("%d", &ref);
     referencesCreator(ref); // cria a string de referencia à memoria
+
+    for (i = 0; i < ref; i++)
+    {
+        if (isPageAvailable(i) == 0) // aqui ja atualiza bits de referencia
+        {
+            printf("ta em memoria");
+        }
+        else
+        {
+            printf("nao ta em memoria");
+            pageFault(i);
+        }
+        pushNonReferedBits();
+    }
+
+    //--------PRINTS TESTE----------
     printf("memoria RAM: ");
     for (i = 0; i < memoryRAMsize; i++)
     {
@@ -215,19 +231,5 @@ int main(void)
         printf("%d ", pages[k].index);
     }
     printf("\n");
-
-    /*for (i = 0; i < TAM_MAX; i++)
-    {
-        if (isPageAvailable(i) == 0) // aqui ja atualiza bits de referencia
-        {
-            printf("ta em memoria");
-        }
-        else
-        {
-            printf("nao ta em memoria");
-            pageFault(i);
-        }
-        pushNonReferedBits();
-    }*/
     return 0;
 }
