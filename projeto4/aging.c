@@ -5,23 +5,23 @@
 #include <time.h>
 #include <stdbool.h>
 
-#define dataSize 52     // quantidade de dados que serao armazenados ao total
-#define memorySize 32   // tamanho da memoria fisica
-#define swapSize 20     // tamanho da memoria de swap
-#define amountPages 52  // qntde de paginas
-#define bitsReference 8 // qntde de bits de referencia da pagina
+#define dataSize 52               // quantidade de dados que serao armazenados ao total
+#define memorySize 20             // tamanho da memoria fisica
+#define swapSize 20               // tamanho da memoria de swap
+#define amountPages 52            // qntde de paginas
+#define bitsReference 8           // qntde de bits de referencia da pagina
 #define generatedPages 4
-#define generatedNumbers 10 
-#define totalIterations 10 // qntde total de iterações para o algoritmo rodar
+#define generatedNumbers 20 
+#define totalIterations 10        // qntde total de iterações para o algoritmo rodar
 #define qtMaxReferencias 255
-// qntde de paginas = area de swap + RAM certo????
+// qntde de paginas = area de swap + RAM 
 
 typedef struct pageNode {
     int index;                    // numero da pagina
     int reference;                // quantidades de referencias
     int adress;                   // endereco fisico nos quadros de pagina
     int modified;                 // checar se foi modificada
-    int inMemory;                 // checar se esta na memoria
+    int inMemory;                 // checar se esta na memoria  -> 0 = RAM | -1 = swapMemory
 } page;
 
 page pages[amountPages];
@@ -115,8 +115,22 @@ int whichIsSmallest(void) { // procura o menor valor dentre os da memoria princi
     return temp;
 }
 
-int swapMemoryLocations(void) { //TODO
-    return 0; //limpa os bits referenciados e troca a var modified, inMemory
+void searchIndexVirtualMemory(int index) {
+    // percorrer o tamanho da memoria virtual e buscar pelo index
+    // quando encontrado a struct page retorna ela
+}
+
+int swapMemoryLocations(int index) { //TODO                 ----- TROCAR AS PAGINAS VITIMAS -----
+    //limpa os bits referenciados 
+    //troca a var modified, inMemory = -1
+    return 0;
+    // tras a pagina da memoria swap para a principal modificar os endressos de cada uma 
+        // percorrer o tamanho da memoria virtual e buscar pelo index
+        // modificar o inMemory para 0
+        // copia o endereco novo na memoria principal
+
+    // chama pushNonReferedBits
+    // soma + 128 para ja ser referenciada
 }
 
 void pushNonReferedBits(void) { //TODO
@@ -124,22 +138,32 @@ void pushNonReferedBits(void) { //TODO
     // empurra todos os bits nao referenciados das paginas na 
 }
 
+void printBits(int index) {
+    // printf("Bits: ");   
+    bin(pages[index].reference);
+}
+
 
 ///*
 int agingAlgorithm(int randNum) {
-    for (int i = 0; i < generatedPages; i++) {
-        if(randNum == pages[i].index && pages[i].inMemory == 1) { // se a pagina for referenciada e se estiver na memoria
+    for (int i = 0; i < amountPages; i++) {
+        if(randNum == pages[i].index && pages[i].inMemory == 0) { // se a pagina for referenciada e se estiver na memoria
             if(pages[i].reference < qtMaxReferencias) { // checar se não estrapolou a qt max de referencias
                 // "EMPURRA" os bits de referencia, chamando funcao pushNonReferedBits
                 pages[i].reference += 128; // adiciona 1 no bit + significativo
+                printf("\nAFTER:\n");
+                printf("\nrandNum: %i | pages[%i].reference: ", randNum, i);
+                printBits(i);
+                print("\n");
+                
             }
-        } else if (/* CONDICAO QUANDO NAO ESTIVER NA MEMORIA*/) { //address == -1 
-            // chama funcao whichIsSmallerst
-            int toBeRemoved = whichIsSmallest();
-            // chama funcao swapMemoryLocations
-            // limpa os bits antes de ir para a memoria
+        } else if (pages[i].inMemory == -1) { // se nao tiver na memoria principal 
+            int toBeRemoved = whichIsSmallest(); // chama funcao whichIsSmallerst para saber a pagina com menos referencia
+            // chama funcao swapMemoryLocations que limpa os bits antes de ir para a memoria principal
+            // incrementa 1 na quantidade de amountAging
         } else { 
-            // 
+            // ???
+            continue;
         }
     }
 }
@@ -180,19 +204,23 @@ int main(void) {
     // print da struct pageNode
 
     // Chama funcao para gerar numeros aleatorios e salvar no vetor randnum
-    int lower = 0, upper = amountPages, count = generatedNumbers;
+    int lower = 0, upper = memorySize; 
+    int count = generatedNumbers;
     srand(time(0));
     printRandoms(lower, upper, count);
 
 
-    for(int i = 0; i < generatedNumbers; i++) {
-        pageIterationPrint(randNumArr[i], i);
-    }
+    // for(int i = 0; i < generatedNumbers; i++) {
+    //     pageIterationPrint(randNumArr[i], i);
+    // }
 
     for(int i = 0; i < totalIterations; i++) {
         agingAlgorithm(randNumArr[i]);
     }
-
+    
+    // for(int i = 0; i < generatedNumbers; i++) {
+    //     pageIterationPrint(randNumArr[i], i);
+    // }
 
     return 0;
 }   
