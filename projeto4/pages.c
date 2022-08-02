@@ -5,16 +5,9 @@
 #include <time.h>
 #include <stdbool.h>
 
-#define dataSize 52     // quantidade de dados que serao armazenados ao total
-#define memorySize 20   // tamanho da memoria fisica
-#define swapSize 20     // tamanho da memoria de swap
-#define amountPages 52  // qntde de paginas
-#define bitsReference 8 // qntde de bits de referencia da pagina
-#define generatedPages 4
-#define referencesQnty 20
-#define totalIterations 10 // qntde total de iterações para o algoritmo rodar
-#define qtMaxReferencias 255
-// qntde de paginas = area de swap + RAM
+#define memoryRAMsize 20 // tamanho da memoria fisica
+#define swapSize 20      // tamanho da memoria de swap
+#define amountPages 52   // qntde de paginas
 
 typedef struct pageNode
 {
@@ -26,80 +19,51 @@ typedef struct pageNode
 } page;
 
 page pages[amountPages];
+int referencesQnty;
 int swapArea[swapSize];
-int memoryArea[memorySize];
-char data[dataSize];
+int memoryRAMarea[memoryRAMsize];
 int stringOfReference[referencesQnty];
-int amountAging = 0;
 
-void reader(int events)
+void initPaging(int pos, int status)
 {
-    for (int i = 0; i < events; i++)
+    pages[pos].index = pos;
+    pages[pos].bitsRef = 0;
+    pages[pos].modified = 0;
+    if (status == 0) // se ela esta na memoria
     {
-        // ler a palavra até enter (gerada randomicamente)
-        // colocar em cada indice do vetor input (var global) a letra em int
-    }
-}
-
-void initData(char *dataAux)
-{
-    int i, letter = 122; // 122 corresponde a 'z'
-    for (i = 0; i < dataSize; i++)
-    {
-        if (letter > 96)
-        { // preenchendo de z ate a
-            *(dataAux + i) = letter;
-            letter--;
-        }
-        else
-        {
-            *(dataAux + i) = letter - 6; // o decimal correspondente a
-            letter--;                    // Z comeca em 90 por isso a subtracao
-        }
-    }
-}
-
-void initPaging(page *nodeAux, int pos, int status)
-{
-    nodeAux->index = pos;
-    nodeAux->reference = 0;
-    nodeAux->modified = 0;
-
-    if (status == 0)
-    {                               // se ela esta na memoria
-        nodeAux->adress = pos;      // pagina de indice 0 correspondera ao quadro 0
-        nodeAux->inMemory = status; // informa se esta na memoria
+        pages[pos].adress = pos;      // pagina de indice 0 correspondera ao quadro 0
+        pages[pos].inMemory = status; // informa se esta na memoria
     }
     else
     {
-        nodeAux->adress = status; // adress recebe -1 por nao estar na memoria
-        nodeAux->inMemory = status;
+        pages[pos].adress = status; // adress recebe -1 por nao estar na memoria
+        pages[pos].inMemory = status;
     }
 }
 
-void initMemory(page *nodeAux)
+void initMemory()
 {
     int i, j, l, k = 0;
 
-    for (i = 0; i < memorySize; i++)
-    {                            // preenchendo a memoria RAM com os primeiros indices
-        memoryArea[i] = data[i]; // do vetor data
+    for (i = 0; i < memoryRAMsize; i++)
+    {
+        memoryRAMarea[i] = i;
     }
-    for (j = i; j < dataSize; j++)
-    { // preenchendo a swap com o restante do vetor data
-        swapArea[k] = data[j];
+    k = i++;
+    for (j = 0; j < swapSize; j++)
+    {
+        swapArea[j] = k;
         k++;
     }
     for (l = 0; l < amountPages; l++)
     { // preenchendo a memoria virtual
-        nodeAux = &pages[l];
-        if (l < memorySize)
+        if (l < memoryRAMsize)
         {
-            initPaging(nodeAux, l, 0); // preenchendo com dados em memoria RAM
+            initPaging(l, 0); // preenchendo com dados em memoria RAM
         }
         else
         {
-            initPaging(nodeAux, l, -1); // preenchendo com dados em SWAP area
+            initPaging(l, -1); // preenchendo com dados em SWAP area
         }
     }
 }
@@ -125,51 +89,66 @@ void bin(unsigned n)
     }
 }
 
-int whichIsSmallest(void)
-{                     // procura o menor valor dentre os da memoria principal
-    int temp = 99999; // numero muito alto para ser substituido
-    for (int i = 0; i < memorySize; i++)
-    { // faz interacao na memoria principal
-        if (pages[i].reference < temp)
+int whichIsSmallest()
+{
+    int i, aux = 0;
+    for (i = 1; i < amountPages; i++)
+    {
+        if (pages[i].reference < pages[aux].reference)
         {
-            temp = pages[i].reference;
+            aux = i;
         }
     }
-    return temp;
+    return pages[aux].index;
 }
 
-void isPageAvailable(int i)
+int isPageAvailable(int i)
 {
-    // percorrer o tamanho da memoria virtual e buscar pelo index
-     if(pages[n].index == stringOfReference){ //se a pagina referenciada ja estiver na memoria
-        for(n = 0; n < amountPages; n++){
-         // quando encontrado a struct page retorna ela
-            if(pages[n]->inMemory == 0)
-                return 0;    
-            else if(pages[n]->inMemory == -1)
-                return -1;   
+    int n;
+    int requestedPage = stringOfReference[i];
+    for (n = 0; n < amountPages; n++)
+    {
+        if (pages[n].index == requestedPage)
+        {
+            if (pages[n]->inMemory == 0)
+                pages[requestedPage].reference += 128;
+            return 0;
+            else return -1;
         }
-     }
+    }
 }
 
-int swapMemoryLocations(int index)
-{ // TODO                 ----- TROCAR AS PAGINAS VITIMAS -----
-    // limpa os bits referenciados
-    // troca a var modified, inMemory = -1
-    return 0;
-    // tras a pagina da memoria swap para a principal modificar os endressos de cada uma
-    // percorrer o tamanho da memoria virtual e buscar pelo index
-    // modificar o inMemory para 0
-    // copia o endereco novo na memoria principal
-
-    // chama pushNonReferedBits
-    // soma + 128 para ja ser referenciada
+void swapping(int pageVictim, int requestedPage)
+{
+    int i;
+    for (j = 0; j < swapSize; j++)
+    {
+        if (requestedPage == swapArea[j])
+        {
+            swapArea[j] = pageVictim;
+            pages[pageVictim].adress = -1;
+            pages[pageVictim].inMemory = -1;
+            pages[pageVictim].reference = 0;
+            break;
+        }
+    }
+    for (i = 0; i < memoryRAMsize; i++)
+    {
+        if (pageVictim == memoryRAMarea[i])
+        {
+            memoryRAMarea[i] = requestedPage;
+            pages[requestedPage].adress = i;
+            pages[requestedPage].inMemory = 0;
+            pages[requestedPage].reference = 128;
+            break;
+        }
+    }
 }
 
-void pushNonReferedBits(void)
+void pushNonReferedBits()
 { // TODO
-    // Faz interacao em todas as paginas na memoria principal
-    // empurra todos os bits nao referenciados das paginas na
+  // Faz interacao em todas as paginas na memoria principal
+  // empurra todos os bits nao referenciados das paginas na
 }
 
 void printBits(int index)
@@ -178,37 +157,12 @@ void printBits(int index)
     bin(pages[index].reference);
 }
 
-///*
-int agingAlgorithm(int randNum)
+int pageFault(int i)
 {
-    for (int i = 0; i < amountPages; i++)
-    {
-        if (randNum == pages[i].index && pages[i].inMemory == 0)
-        { // se a pagina for referenciada e se estiver na memoria
-            if (pages[i].reference < qtMaxReferencias)
-            { // checar se não estrapolou a qt max de referencias
-                // "EMPURRA" os bits de referencia, chamando funcao pushNonReferedBits
-                pages[i].reference += 128; // adiciona 1 no bit + significativo
-                printf("\nAFTER:\n");
-                printf("\nrandNum: %i | pages[%i].reference: ", randNum, i);
-                printBits(i);
-                printf("\n");
-            }
-        }
-        else if (pages[i].inMemory == -1)
-        {                                        // se nao tiver na memoria principal
-            int toBeRemoved = whichIsSmallest(); // chama funcao whichIsSmallerst para saber a pagina com menos referencia
-            // chama funcao swapMemoryLocations que limpa os bits antes de ir para a memoria principal
-            // incrementa 1 na quantidade de amountAging
-        }
-        else
-        {
-            // ???
-            continue;
-        }
-    }
+    int requestedPage = stringOfReference[i];
+    int pageVictim = whichIsSmallest();
+    swapping(pageVictim, requestedPage);
 }
-//*/
 
 void pageIterationPrint(int randInt, int z)
 {
@@ -231,23 +185,32 @@ void pageIterationPrint(int randInt, int z)
 
 int main(void)
 {
+    int i;
 
-    int i, j, l, k = 0; // variaveis auxiliares
-    int lower = 0;
-    page *nodeAux; //
-    char *dataAux; // pointeiro para data
-    dataAux = data;
-
-    initData(dataAux);
-    initMemory(nodeAux);
+    initMemory();
+    printf("Insira a qntde de referências à memória: ");
+    scanf("%d", &referencesQnty);
     referencesCreator(); // cria a string de referencia à memoria
+    for (i = 0; i < referencesQnty; i++)
+    {
+        if (isPageAvailable(i) == 0) // aqui ja atualiza bits de referencia
+        {
+            printf("ta em memoria");
+        }
+        else
+        {
+            printf("nao ta em memoria");
+            pageFault(i);
+        }
+        pushNonReferedBits();
+    }
 
     // for(int i = 0; i < referencesQnty; i++) {
     //     pageIterationPrint(stringOfReference[i], i);
     // }
 
     // for(int i = 0; i < totalIterations; i++) {
-    //     agingAlgorithm(stringOfReference[i]);
+    //     pageFault(stringOfReference[i]);
     // }
 
     // for(int i = 0; i < referencesQnty; i++) {
