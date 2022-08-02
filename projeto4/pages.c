@@ -5,9 +5,10 @@
 #include <time.h>
 #include <stdbool.h>
 
-#define memoryRAMsize 20 // tamanho da memoria fisica
+#define memoryRAMsize 32 // tamanho da memoria fisica
 #define swapSize 20      // tamanho da memoria de swap
 #define amountPages 52   // qntde de paginas
+#define TAM_MAX 1000
 
 typedef struct pageNode
 {
@@ -19,15 +20,14 @@ typedef struct pageNode
 } page;
 
 page pages[amountPages];
-int referencesQnty;
 int swapArea[swapSize];
 int memoryRAMarea[memoryRAMsize];
-int stringOfReference[referencesQnty];
+int stringOfReference[TAM_MAX];
 
 void initPaging(int pos, int status)
 {
     pages[pos].index = pos;
-    pages[pos].bitsRef = 0;
+    pages[pos].reference = 0;
     pages[pos].modified = 0;
     if (status == 0) // se ela esta na memoria
     {
@@ -68,15 +68,21 @@ void initMemory()
     }
 }
 
-void referencesCreator()
+void referencesCreator(int ref)
 {
+    int i;
     srand(time(NULL));
-    printf("Generated Numbers: ");
-    for (int i = 0; i < referencesQnty; i++)
+    printf("String de referências: ");
+    for (i = 0; i < ref; i++)
     {
         stringOfReference[i] = (rand() % (amountPages + 1));
-        printf("%d ", stringOfReference[i]);
     }
+    stringOfReference[i] = -1;
+    for (int j = 1; j < ref; j++)
+    {
+        printf("%d ", stringOfReference[j]);
+    }
+    // printf("%d ", stringOfReference[i]);
     printf("%d \n");
 }
 
@@ -110,17 +116,17 @@ int isPageAvailable(int i)
     {
         if (pages[n].index == requestedPage)
         {
-            if (pages[n]->inMemory == 0)
+            if (pages[n].inMemory == 0)
                 pages[requestedPage].reference += 128;
             return 0;
-            else return -1;
         }
     }
+    return -1;
 }
 
 void swapping(int pageVictim, int requestedPage)
 {
-    int i;
+    int i, j;
     for (j = 0; j < swapSize; j++)
     {
         if (requestedPage == swapArea[j])
@@ -185,13 +191,32 @@ void pageIterationPrint(int randInt, int z)
 
 int main(void)
 {
-    int i;
+    int i, j, k, ref;
 
     initMemory();
     printf("Insira a qntde de referências à memória: ");
-    scanf("%d", &referencesQnty);
-    referencesCreator(); // cria a string de referencia à memoria
-    for (i = 0; i < referencesQnty; i++)
+    scanf("%d", &ref);
+    referencesCreator(ref); // cria a string de referencia à memoria
+    printf("memoria RAM: ");
+    for (i = 0; i < memoryRAMsize; i++)
+    {
+        printf("%d ", memoryRAMarea[i]);
+    }
+    printf("\n");
+    printf("memoria SWAP: ");
+    for (int j = 0; j < swapSize; j++)
+    {
+        printf("%d ", swapArea[j]);
+    }
+    printf("\n");
+    printf("paginas virtuais: ");
+    for (k = 0; k < amountPages; k++)
+    {
+        printf("%d ", pages[k].index);
+    }
+    printf("\n");
+
+    /*for (i = 0; i < TAM_MAX; i++)
     {
         if (isPageAvailable(i) == 0) // aqui ja atualiza bits de referencia
         {
@@ -203,19 +228,6 @@ int main(void)
             pageFault(i);
         }
         pushNonReferedBits();
-    }
-
-    // for(int i = 0; i < referencesQnty; i++) {
-    //     pageIterationPrint(stringOfReference[i], i);
-    // }
-
-    // for(int i = 0; i < totalIterations; i++) {
-    //     pageFault(stringOfReference[i]);
-    // }
-
-    // for(int i = 0; i < referencesQnty; i++) {
-    //     pageIterationPrint(stringOfReference[i], i);
-    // }
-
+    }*/
     return 0;
 }
