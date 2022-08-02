@@ -3,6 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <stdbool.h>
 
 #define dataSize 52     // quantidade de dados que serao armazenados ao total
 #define memorySize 32   // tamanho da memoria fisica
@@ -12,15 +13,15 @@
 #define generatedPages 4
 #define generatedNumbers 10 
 #define totalIterations 10 // qntde total de iterações para o algoritmo rodar
+#define qtMaxReferencias 255
 // qntde de paginas = area de swap + RAM certo????
 
 typedef struct pageNode {
     int index;                    // numero da pagina
-    int reference;
+    int reference;                // quantidades de referencias
     int adress;                   // endereco fisico nos quadros de pagina
     int modified;                 // checar se foi modificada
     int inMemory;                 // checar se esta na memoria
-    //ADICIONAR CAMPO DATA
 } page;
 
 page pages[amountPages];
@@ -30,13 +31,15 @@ char data[dataSize];
 int randNumArr[generatedNumbers];
 int amountAging = 0;
 
-void bin(unsigned n) {
-    unsigned i;
-    for (i = 1 << 8; i > 0; i = i / 2)
-        (n & i) ? printf("1") : printf("0");
-
-    printf("\n");
+void reader(int events)
+{
+  for (int i = 0; i < events; i++)
+  {
+    // ler a palavra até enter (gerada randomicamente)
+    // colocar em cada indice do vetor input (var global) a letra em int
+  }
 }
+
 
 void initData(char *dataAux) {
     int i, letter = 122; // 122 corresponde a 'z'
@@ -95,28 +98,69 @@ int printRandoms(int lower, int upper, int count) {
     printf("\n");
 }
 
-int agingAlgo(int randNum) {
+void bin(unsigned n) { // funcao para imprimir os bits de referencia
+    unsigned i;
+    for (i = 1 << 8; i > 0; i = i / 2){
+        (n & i) ? printf("1") : printf("0");
+    }
+}
+
+int whichIsSmallest(void) { // procura o menor valor dentre os da memoria principal
+    int temp = 99999; // numero muito alto para ser substituido
+    for(int i = 0; i < memorySize; i++) { // faz interacao na memoria principal 
+        if(pages[i].reference < temp) {
+            temp = pages[i].reference;
+        }
+    }
+    return temp;
+}
+
+int swapMemoryLocations(void) { //TODO
+    return 0; //limpa os bits referenciados e troca a var modified, inMemory
+}
+
+void pushNonReferedBits(void) { //TODO
+    // Faz interacao em todas as paginas na memoria principal
+    // empurra todos os bits nao referenciados das paginas na 
+}
+
+
+///*
+int agingAlgorithm(int randNum) {
     for (int i = 0; i < generatedPages; i++) {
-        if(randNum == pages[i].index) {
-            pages[i].reference++;
-        } else if {
-            // TODO
+        if(randNum == pages[i].index && pages[i].inMemory == 1) { // se a pagina for referenciada e se estiver na memoria
+            if(pages[i].reference < qtMaxReferencias) { // checar se não estrapolou a qt max de referencias
+                // "EMPURRA" os bits de referencia, chamando funcao pushNonReferedBits
+                pages[i].reference += 128; // adiciona 1 no bit + significativo
+            }
+        } else if (/* CONDICAO QUANDO NAO ESTIVER NA MEMORIA*/) { //address == -1 
+            // chama funcao whichIsSmallerst
+            int toBeRemoved = whichIsSmallest();
+            // chama funcao swapMemoryLocations
+            // limpa os bits antes de ir para a memoria
+        } else { 
+            // 
         }
     }
 }
+//*/
+
 
 void pageIterationPrint(int randInt, int z) {
         printf("RAND INT: %d\n", randInt);
     //   for (int z = 0; z < amountPages; z++) {
-        printf("\n---------BEFORE---------\n");
-        printf("PAGE: index %d | mod %d | inMemory %d\n", pages[z].index, pages[z].modified, pages[z].inMemory);
+        printf("\n---------PAGE %d---------", pages[z].index);
+        printf("\nBEFORE: ");
+        printf("mod %d | inMemory %d\n", pages[z].modified, pages[z].inMemory);
+        printf("Bits: ");   
         bin(pages[z].reference);
-        printf("Decimal: %d ", pages[z].reference);
-        printf("\n---------AFTER---------\n");
+        printf(" | Decimal: %d\n", pages[z].reference);
+        printf("\nAFTER: ");
         // pages[z].reference = ;
-        printf("PAGE: index %d | mod %d | inMemory %d\n", pages[z].index, pages[z].modified + 1, pages[z].inMemory);
+        printf("mod %d | inMemory %d\n", pages[z].modified + 1, pages[z].inMemory);
+        printf("Bits: ");  
         bin(pages[z].reference);
-        printf("Decimal: %d\n", pages[z].reference);
+        printf(" | Decimal: %d\n", pages[z].reference);
     // }
 }
 
@@ -132,10 +176,8 @@ int main(void) {
     initMemory(nodeAux);
 
     int value;
-  /* ------------------- prints de teste ----------------------- */
 
-  // print da struct pageNode
-
+    // print da struct pageNode
 
     // Chama funcao para gerar numeros aleatorios e salvar no vetor randnum
     int lower = 0, upper = amountPages, count = generatedNumbers;
@@ -143,12 +185,12 @@ int main(void) {
     printRandoms(lower, upper, count);
 
 
-    // for(int i = 0; i < generatedNumbers; i++) {
-    //     pageIterationPrint(randNumArr[i], i);
-    // }
+    for(int i = 0; i < generatedNumbers; i++) {
+        pageIterationPrint(randNumArr[i], i);
+    }
 
     for(int i = 0; i < totalIterations; i++) {
-        agingAlgo(RandNumArr[i]);
+        agingAlgorithm(randNumArr[i]);
     }
 
 
