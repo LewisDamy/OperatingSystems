@@ -232,7 +232,7 @@ int main(void)
 
     initData(dataAux);
     initMemory(nodeAux);
-    referencesCreator(lower); // cria a string de referencia à memoria
+    referencesCreator(); // cria a string de referencia à memoria
 
     // for(int i = 0; i < referencesQnty; i++) {
     //     pageIterationPrint(stringOfReference[i], i);
