@@ -73,7 +73,7 @@ void initMemory()
 void bin(unsigned n)
 { // funcao auxiliar para imprimir os bits de referencia
     unsigned i;
-    for (i = 1 << 8; i > 0; i = i / 2)
+    for (i = 1 << 7; i > 0; i = i / 2)
     {
         (n & i) ? printf("1") : printf("0");
     }
@@ -164,23 +164,35 @@ int pageFault(int index)
     swapping(pageVictim, requestedPage);
     return 0;
 }
+int breaker1 = 0;
+int breaker2 = 0;
 
-void pageIterationPrint(int z)
-{   
-    //   for (int z = 0; z < amountPages; z++) {
-    printf("\n---------PAGE %d---------", pages[z].index);
-    printf("\nBEFORE: ");
-    printf("mod %d | inMemory %d\n", pages[z].modified, pages[z].inMemory);
-    printf("Bits: ");
-    bin(pages[z].reference);
-    printf(" | Decimal: %d\n", pages[z].reference);
-    printf("\nAFTER: ");
-    // pages[z].reference = ;
-    printf("mod %d | inMemory %d\n", pages[z].modified + 1, pages[z].inMemory);
-    printf("Bits: ");
-    bin(pages[z].reference);
-    printf(" | Decimal: %d\n", pages[z].reference);
-    // }
+void pagePrint(int interation, int pageToSearch) {
+
+    printf("---------ITERATION: %i | Searching for page index: %i ---------\n\n", interation, pageToSearch);
+
+    for(int i = 0; i < amountPages; i++) {
+        if(pages[i].inMemory == 0) {
+            if(breaker1 == 0) {
+                printf("---------RAM Memory---------\n\n");
+                breaker1 = -1;
+            }
+            printf("index: %i | address: %i | mod: %i | inMemory: %i \nBits: ", pages[i].index, pages[i].adress, pages[i].modified, pages[i].inMemory);
+            bin(pages[i].reference);
+            printf(" | Decimal: %i\n\n  ", pages[i].reference);
+        }
+        else {
+            if(breaker2 == 0) {
+                printf("---------SWAP Memory---------\n\n");
+                breaker2 = -1;
+            }
+            printf("index: %i | address: %i | mod: %i | inMemory: %i \nBits: ", pages[i].index, pages[i].adress, pages[i].modified, pages[i].inMemory);
+            bin(pages[i].reference);
+            printf(" | Decimal: %i\n\n", pages[i].reference);
+        }
+    }
+    breaker1 = 0;
+    breaker2 = 0;
 }
 
 
@@ -209,45 +221,44 @@ int main(void)
     srand(time(0));
     referencesCreator(lower, upper, count); // funcao que gera numeros
 
-    for (i = 0; i < ref; i++) 
+    for (i = 0; i < count; i++) 
     {
         if (isPageAvailable(i) == 0) // aqui ja atualiza bits de referencia
         {
-            printf("ta em memoria\n");
+            // printf("ta em memoria\n");
         }
         else 
         {
-            printf("nao ta em memoria\n");
+            // printf("nao ta em memoria\n");
             pageFault(i);
         }
+        pagePrint(i, stringOfReference[i]);/// mandar imprimir bits das referencias aqui 
         if(stringOfReference[i + 1] != -1) {
             pushNonReferedBits();    
         }
     }
+    printf("------------------------------------------------------------ AFTER FINISH !\n\n");
+    // //--------PRINTS TESTE----------
+    // printf("memoria RAM: ");
+    // for (i = 0; i < memoryRAMsize; i++)
+    // {
+    //     printf("%d ", memoryRAMarea[i]);
+    // }
+    // printf("\n");
+    // printf("memoria SWAP: ");
+    // for (int j = 0; j < swapSize; j++)
+    // {
+    //     printf("%d ", swapArea[j]);
+    // }
+    // printf("\n");
+    // printf("paginas virtuais: ");
+    // for (k = 0; k < amountPages; k++)
+    // {
+    //     printf("%d ", pages[k].index);
+    // }
+    // printf("\n");
 
-    //--------PRINTS TESTE----------
-    printf("memoria RAM: ");
-    for (i = 0; i < memoryRAMsize; i++)
-    {
-        printf("%d ", memoryRAMarea[i]);
-    }
-    printf("\n");
-    printf("memoria SWAP: ");
-    for (int j = 0; j < swapSize; j++)
-    {
-        printf("%d ", swapArea[j]);
-    }
-    printf("\n");
-    printf("paginas virtuais: ");
-    for (k = 0; k < amountPages; k++)
-    {
-        printf("%d ", pages[k].index);
-    }
-    printf("\n");
-
-    for (int i = 0; i < amountPages; i++){
-        pageIterationPrint(i);
-    }
+    pagePrint(-1, -1);
 
     return 0;
 }
