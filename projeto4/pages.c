@@ -25,12 +25,14 @@ int swapArea[swapSize];
 int memoryRAMarea[memoryRAMsize];
 int stringOfReference[TAM_MAX];
 int pushedOrNot = false;
+int amountSwappedPages = 0;
 
 
 // Kaquete para fazer os prints
 int breaker1 = 0;
 int breaker2 = 0;
 int hasSwapped = 0;
+int smallestBetweenUs = -1;
 
 
 void initPaging(int pos, int status)
@@ -97,13 +99,14 @@ void printBits(int index)
 // funcao para saber qual valor e o menor dentre os da RAM
 int whichIsSmallest(void) { 
     int i, aux = 0;
-    for (i = 1; i < amountPages; i++)
+    for (i = 0; i < memoryRAMsize; i++)
     {
         if (pages[i].reference < pages[aux].reference)
         {
             aux = i;
         }
     }
+    smallestBetweenUs = pages[aux].index; // salva o indice da funcao que vai ser retornado para uma var global
     return pages[aux].index;
 }
 
@@ -112,27 +115,29 @@ void pushNonReferedBits()
 { 
     int temp = 0;
     // Faz interacao em todas as paginas na memoria principal
-    for(int i = 0; i < memoryRAMsize; i++) { 
+    for(int i = 0; i < amountPages; i++) { 
         // empurra todos os bits nao referenciados das paginas na memoria principal
-        temp = pages[i].reference;
-        pages[i].reference = temp>>1;
+        if(pages[i].inMemory == 0) {
+            temp = pages[i].reference;
+            pages[i].reference = temp>>1;
+        }
     }
     
 }
 
 // funcao para saber se a pagina esta na RAM e incrementar 1 bit na referencia
-int isPageAvailable(int i)
+int isPageAvailable(int indexToSearch)
 {
     int n;
-    int requestedPage = stringOfReference[i];
+    int requestedPage = indexToSearch;
     for (n = 0; n < amountPages; n++)
     {
         if (pages[n].index == requestedPage)
         {
             if (pages[n].inMemory == 0) {
                 pages[requestedPage].reference += 128;
+                return 0;
             }
-            return 0;
         }
     }
     return -1;
@@ -142,6 +147,7 @@ int isPageAvailable(int i)
 void swapping(int pageVictim, int requestedPage)
 {
     int i, j;
+    amountSwappedPages++;
     for (j = 0; j < swapSize; j++)
     {
         if (requestedPage == swapArea[j])
@@ -175,16 +181,38 @@ int pageFault(int index)
     return 0;
 }
 
+void RAMcontent(void) {
+    printf("RAM Content:\n");
+    for(int i = 0; i < amountPages; i++) {
+        if(pages[i].inMemory == 0) {
+            printf("[%i]: pgIndex:%i  pgAddress:%i\n", i, pages[i].index, pages[i].adress);
+        }
+    }
+    // printf("\n");
+}
+
+void SWAPcontent(void) {
+    printf("SWAP Content:\n");
+    for(int i = 0; i < amountPages; i++) {
+        if(pages[i].adress == -1) {
+            printf("[%i]: pgIndex:%i  pgAddress: SEMPRE -1 \n", i, pages[i].index);//, pages[i].adress);
+        }
+    }
+    printf("\n");
+}
+
 // funcao para imprimir as paginas
 void pagePrint(int interation, int pageToSearch) {
 
-    printf("---------ITERATION: %i | Searching for page index: %i ---------\n\n", interation, pageToSearch);
+    printf("-----------------------------------------------ITERATION: %i | Searching for page index: %i\n\n", interation, pageToSearch);
 
     for(int i = 0; i < amountPages; i++) {
         if(pages[i].inMemory == 0) {
             if(breaker1 == 0) {
-                printf("---------RAM Memory---------\n\n");
+                RAMcontent();
+                SWAPcontent();
                 breaker1 = -1;
+                printf("---------RAM Memory---------\n\n");
             }
             printf("index: %i | address: %i | mod: %i | inMemory: %i \nBits: ", pages[i].index, pages[i].adress, pages[i].modified, pages[i].inMemory);
             bin(pages[i].reference);
@@ -192,6 +220,16 @@ void pagePrint(int interation, int pageToSearch) {
         }
         else if (hasSwapped == 1){ // se fez swap vamo imprimir o que aconteceu la dentro
             // TODO 
+            printf("MENOR indice decimal: %i\n", smallestBetweenUs);
+            printf("PAGINA QUE TA SSSSAAAAIIIINNNDDDDOOO: \n");
+            printf("index: %i | address: %i | mod: %i | inMemory: %i \nBits: ", pages[smallestBetweenUs].index, pages[smallestBetweenUs].adress, pages[smallestBetweenUs].modified, pages[smallestBetweenUs].inMemory);
+            bin(pages[smallestBetweenUs].reference);
+            printf(" | Decimal: %i\n\n  ", pages[smallestBetweenUs].reference);
+            /// divisaoo
+            printf("PAGINA QUE TA ENTRANDOOOOOO: %i\n", pageToSearch);
+            printf("index: %i | address: %i | mod: %i | inMemory: %i \nBits: ", pages[i].index, pages[i].adress, pages[i].modified, pages[i].inMemory);
+            bin(pages[i].reference);
+            printf(" | Decimal: %i\n\n  ", pages[i].reference);
         } else {
             if(breaker2 == 0) {
                 printf("---------SWAP Memory---------\n\n");
@@ -202,6 +240,9 @@ void pagePrint(int interation, int pageToSearch) {
             printf(" | Decimal: %i\n\n", pages[i].reference);
         }
     }
+    RAMcontent();
+    SWAPcontent();
+
     breaker1 = 0;
     breaker2 = 0;
 }
@@ -221,20 +262,24 @@ void referencesCreator(int lower, int upper, int count) {
 
 int main(void)
 {
-    int i, j, k, ref;
-
+    int i, j, k, ref, count;  
     initMemory();
-    // printf("Insira a qntde de referências à memória: ");
-    // scanf("%i", &count);
+    printf("Insira a qntde de referências à memória: ");
+    scanf("%i", &count);
 
     // valores minimo e maximo para gerar numeros
-    int lower = 0, upper = amountPages, count = 4; // CHUMBEI AQUI O VALOR DA QT DE NUMEROS GERADOS!!!
+    int lower = 0, upper = amountPages - 1; //, count = 4; // CHUMBEI AQUI O VALOR DA QT DE NUMEROS GERADOS!!!
     srand(time(0));
     referencesCreator(lower, upper, count); // funcao que gera numeros
 
+    // stringOfReference[0] = 1;
+    // stringOfReference[1] = 4;
+    // stringOfReference[2] = 2;
+    // stringOfReference[4] = -1;
+
     for (i = 0; i < count; i++) 
     {
-        if (isPageAvailable(i) == 0) // aqui ja atualiza bits de referencia
+        if (isPageAvailable(stringOfReference[i]) == 0) // aqui ja atualiza bits de referencia
         {
             // printf("ta em memoria\n");
         }
@@ -246,7 +291,7 @@ int main(void)
         }
         pagePrint(i, stringOfReference[i]); // mandar imprimir bits das referencias aqui 
         if(hasSwapped == 1) { // se houve swap
-            hasSwapped == 0; // volta para 0
+            hasSwapped = 0; // volta para 0
         }
         if(stringOfReference[i + 1] != -1) {
             pushNonReferedBits();    
@@ -274,6 +319,12 @@ int main(void)
     // printf("\n");
 
     pagePrint(-1, -1);
+    printf("ArrRum: ");
+    for(int i = 0; i < count; i++) {
+        printf("%i ", stringOfReference[i]);
+    }
+    printf("\n");
+    printf("amountSwappedPages: %i\n",amountSwappedPages);
 
     return 0;
 }
