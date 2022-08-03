@@ -19,11 +19,19 @@ typedef struct pageNode
     int inMemory;  // checar se esta na memoria  -> 0 = RAM | -1 = swapMemory
 } page;
 
+
 page pages[amountPages];
 int swapArea[swapSize];
 int memoryRAMarea[memoryRAMsize];
 int stringOfReference[TAM_MAX];
 int pushedOrNot = false;
+
+
+// Kaquete para fazer os prints
+int breaker1 = 0;
+int breaker2 = 0;
+int hasSwapped = 0;
+
 
 void initPaging(int pos, int status)
 {
@@ -42,6 +50,7 @@ void initPaging(int pos, int status)
     }
 }
 
+// funcao para iniciar a memoria
 void initMemory()
 {
     int i, j, l, k = 0;
@@ -69,9 +78,8 @@ void initMemory()
     }
 }
 
-
-void bin(unsigned n)
-{ // funcao auxiliar para imprimir os bits de referencia
+// funcao auxiliar para imprimir os bits de referencia
+void bin(unsigned n) { 
     unsigned i;
     for (i = 1 << 7; i > 0; i = i / 2)
     {
@@ -86,8 +94,8 @@ void printBits(int index)
     printf("\n");
 }
 
-int whichIsSmallest(void)
-{
+// funcao para saber qual valor e o menor dentre os da RAM
+int whichIsSmallest(void) { 
     int i, aux = 0;
     for (i = 1; i < amountPages; i++)
     {
@@ -112,6 +120,7 @@ void pushNonReferedBits()
     
 }
 
+// funcao para saber se a pagina esta na RAM e incrementar 1 bit na referencia
 int isPageAvailable(int i)
 {
     int n;
@@ -129,6 +138,7 @@ int isPageAvailable(int i)
     return -1;
 }
 
+// funcao que tira a pagina da memoria RAM menos acessada pela requisitada na swapMemory
 void swapping(int pageVictim, int requestedPage)
 {
     int i, j;
@@ -164,9 +174,8 @@ int pageFault(int index)
     swapping(pageVictim, requestedPage);
     return 0;
 }
-int breaker1 = 0;
-int breaker2 = 0;
 
+// funcao para imprimir as paginas
 void pagePrint(int interation, int pageToSearch) {
 
     printf("---------ITERATION: %i | Searching for page index: %i ---------\n\n", interation, pageToSearch);
@@ -181,7 +190,9 @@ void pagePrint(int interation, int pageToSearch) {
             bin(pages[i].reference);
             printf(" | Decimal: %i\n\n  ", pages[i].reference);
         }
-        else {
+        else if (hasSwapped == 1){ // se fez swap vamo imprimir o que aconteceu la dentro
+            // TODO 
+        } else {
             if(breaker2 == 0) {
                 printf("---------SWAP Memory---------\n\n");
                 breaker2 = -1;
@@ -230,9 +241,13 @@ int main(void)
         else 
         {
             // printf("nao ta em memoria\n");
+            hasSwapped = 1; // vai acontecer swap vira 1
             pageFault(i);
         }
-        pagePrint(i, stringOfReference[i]);/// mandar imprimir bits das referencias aqui 
+        pagePrint(i, stringOfReference[i]); // mandar imprimir bits das referencias aqui 
+        if(hasSwapped == 1) { // se houve swap
+            hasSwapped == 0; // volta para 0
+        }
         if(stringOfReference[i + 1] != -1) {
             pushNonReferedBits();    
         }
