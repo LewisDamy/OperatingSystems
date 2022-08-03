@@ -5,9 +5,9 @@
 #include <time.h>
 #include <stdbool.h>
 
-#define memoryRAMsize 32 // tamanho da memoria fisica
-#define swapSize 20      // tamanho da memoria de swap
-#define amountPages 52   // qntde de paginas
+#define memoryRAMsize 3 // tamanho da memoria fisica
+#define swapSize 2      // tamanho da memoria de swap
+#define amountPages 5   // qntde de paginas
 #define TAM_MAX 1000
 
 typedef struct pageNode
@@ -23,6 +23,7 @@ page pages[amountPages];
 int swapArea[swapSize];
 int memoryRAMarea[memoryRAMsize];
 int stringOfReference[TAM_MAX];
+int pushedOrNot = false;
 
 void initPaging(int pos, int status)
 {
@@ -73,21 +74,20 @@ void referencesCreator(int ref)
     int i;
     srand(time(NULL));
     printf("String de referências: ");
-    for (i = 0; i < ref; i++)
-    {
+
+    for (i = 0; i < ref; i++) {
         stringOfReference[i] = (rand() % (amountPages + 1));
     }
     stringOfReference[i] = -1;
-    for (int j = 1; j < ref; j++)
-    {
+    for (int j = 1; j < ref; j++) {
         printf("%d ", stringOfReference[j]);
-    }
+    } 
     // printf("%d ", stringOfReference[i]);
     printf("%d \n");
 }
 
 void bin(unsigned n)
-{ // funcao para imprimir os bits de referencia
+{ // funcao auxiliar para imprimir os bits de referencia
     unsigned i;
     for (i = 1 << 8; i > 0; i = i / 2)
     {
@@ -95,7 +95,14 @@ void bin(unsigned n)
     }
 }
 
-int whichIsSmallest()
+void printBits(int index)
+{
+    printf("Bits: ");
+    bin(pages[index].reference);
+    printf("\n");
+}
+
+int whichIsSmallest(void)
 {
     int i, aux = 0;
     for (i = 1; i < amountPages; i++)
@@ -108,6 +115,20 @@ int whichIsSmallest()
     return pages[aux].index;
 }
 
+// funcao para empurrar a referencia de bits
+void pushNonReferedBits() 
+{ 
+    int temp = 0;
+    // Faz interacao em todas as paginas na memoria principal
+    for(int i = 0; i < memoryRAMsize; i++) { 
+        // empurra todos os bits nao referenciados das paginas na memoria principal
+        temp = pages[i].reference;
+        temp>>1;
+        pages[i].reference = temp;
+    }
+    
+}
+
 int isPageAvailable(int i)
 {
     int n;
@@ -116,8 +137,9 @@ int isPageAvailable(int i)
     {
         if (pages[n].index == requestedPage)
         {
-            if (pages[n].inMemory == 0)
+            if (pages[n].inMemory == 0) {
                 pages[requestedPage].reference += 128;
+            }
             return 0;
         }
     }
@@ -151,28 +173,17 @@ void swapping(int pageVictim, int requestedPage)
     }
 }
 
-void pushNonReferedBits()
-{ // TODO
-  // Faz interacao em todas as paginas na memoria principal
-  // empurra todos os bits nao referenciados das paginas na
-}
-
-void printBits(int index)
+// busca pagina que nao esta na RAM
+int pageFault(int index) 
 {
-    // printf("Bits: ");
-    bin(pages[index].reference);
-}
-
-int pageFault(int i)
-{
-    int requestedPage = stringOfReference[i];
+    int requestedPage = stringOfReference[index];
     int pageVictim = whichIsSmallest();
     swapping(pageVictim, requestedPage);
+    return 0;
 }
 
-void pageIterationPrint(int randInt, int z)
-{
-    printf("RAND INT: %d\n", randInt);
+void pageIterationPrint(int z)
+{   
     //   for (int z = 0; z < amountPages; z++) {
     printf("\n---------PAGE %d---------", pages[z].index);
     printf("\nBEFORE: ");
@@ -189,6 +200,7 @@ void pageIterationPrint(int randInt, int z)
     // }
 }
 
+
 int main(void)
 {
     int i, j, k, ref;
@@ -198,18 +210,18 @@ int main(void)
     scanf("%d", &ref);
     referencesCreator(ref); // cria a string de referencia à memoria
 
-    for (i = 0; i < ref; i++)
+    for (i = 0; i < ref; i++) 
     {
         if (isPageAvailable(i) == 0) // aqui ja atualiza bits de referencia
         {
-            printf("ta em memoria");
+            printf("ta em memoria\n");
         }
-        else
+        else 
         {
-            printf("nao ta em memoria");
+            printf("nao ta em memoria\n");
             pageFault(i);
         }
-        pushNonReferedBits();
+        pushNonReferedBits();    
     }
 
     //--------PRINTS TESTE----------
@@ -231,5 +243,10 @@ int main(void)
         printf("%d ", pages[k].index);
     }
     printf("\n");
+
+    for (int i = 0; i < amountPages; i++){
+        pageIterationPrint(i);
+    }
+
     return 0;
 }
