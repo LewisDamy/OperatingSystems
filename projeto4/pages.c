@@ -69,22 +69,6 @@ void initMemory()
     }
 }
 
-void referencesCreator(int ref)
-{
-    int i;
-    srand(time(NULL));
-    printf("String de referências: ");
-
-    for (i = 0; i < ref; i++) {
-        stringOfReference[i] = (rand() % (amountPages + 1));
-    }
-    stringOfReference[i] = -1;
-    for (int j = 1; j < ref; j++) {
-        printf("%d ", stringOfReference[j]);
-    } 
-    // printf("%d ", stringOfReference[i]);
-    printf("%d \n");
-}
 
 void bin(unsigned n)
 { // funcao auxiliar para imprimir os bits de referencia
@@ -123,8 +107,7 @@ void pushNonReferedBits()
     for(int i = 0; i < memoryRAMsize; i++) { 
         // empurra todos os bits nao referenciados das paginas na memoria principal
         temp = pages[i].reference;
-        temp>>1;
-        pages[i].reference = temp;
+        pages[i].reference = temp>>1;
     }
     
 }
@@ -201,14 +184,30 @@ void pageIterationPrint(int z)
 }
 
 
+// funcao que cria um vetor de numeros aleatorios salvando em stringOfReference e imprime eles
+void referencesCreator(int lower, int upper, int count) {
+    printf("RandArr: ");
+    for(int i = 0; i < count; i++) {
+        int num = (rand() % (upper - lower + 1)) + lower;
+        stringOfReference[i] = num;
+        printf("%d ", num);
+    }
+    printf("\n");
+}
+
+
 int main(void)
 {
     int i, j, k, ref;
 
     initMemory();
-    printf("Insira a qntde de referências à memória: ");
-    scanf("%d", &ref);
-    referencesCreator(ref); // cria a string de referencia à memoria
+    // printf("Insira a qntde de referências à memória: ");
+    // scanf("%i", &count);
+
+    // valores minimo e maximo para gerar numeros
+    int lower = 0, upper = amountPages, count = 4; // CHUMBEI AQUI O VALOR DA QT DE NUMEROS GERADOS!!!
+    srand(time(0));
+    referencesCreator(lower, upper, count); // funcao que gera numeros
 
     for (i = 0; i < ref; i++) 
     {
@@ -221,7 +220,9 @@ int main(void)
             printf("nao ta em memoria\n");
             pageFault(i);
         }
-        pushNonReferedBits();    
+        if(stringOfReference[i + 1] != -1) {
+            pushNonReferedBits();    
+        }
     }
 
     //--------PRINTS TESTE----------
